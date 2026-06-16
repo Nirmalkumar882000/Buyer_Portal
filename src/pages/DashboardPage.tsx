@@ -1,0 +1,237 @@
+import React from 'react';
+import { Button } from '../components/Button';
+
+interface DashboardPageProps {
+  formData: any;
+  onLogout: () => void;
+  onActionClick: (view: string) => void;
+}
+
+export const DashboardPage: React.FC<DashboardPageProps> = ({ formData, onLogout, onActionClick }) => {
+  const recentPurchases = [
+    { product: 'Paddy (Grade A)', qty: '5 MT', amount: '₹94,860', status: 'Delivered', statusColor: 'bg-emerald-100 text-emerald-800' },
+    { product: 'Groundnut', qty: '500 kg', amount: '₹26,000', status: 'In Transit', statusColor: 'bg-amber-100 text-amber-800' },
+    { product: 'Onion (Large)', qty: '1 MT', amount: '₹19,200', status: 'Processing', statusColor: 'bg-blue-100 text-blue-800' },
+  ];
+
+  const notifications = [
+    { text: 'Auction Win! Paddy Lot #A-2294 — ₹94,860', time: '2 mins ago', dotColor: 'bg-slate-600' },
+    { text: 'Outbid on Onion Lot #A-2291. New high: ₹22,400', time: '18 mins ago', dotColor: 'bg-orange-500' },
+    { text: 'Agent Murugan (Trichy APMC) approved your request', time: '1 hour ago', dotColor: 'bg-emerald-500' },
+    { text: 'Groundnut delivery ETA today 4 PM', time: '3 hours ago', dotColor: 'bg-teal-500' },
+  ];
+
+  const Marquee = 'marquee' as any;
+
+  return (
+    <div className="space-y-6">
+      {/* Welcome Title */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+            Good morning, {formData.fullName || 'Ravi Kumar'} <span className="animate-bounce">👋</span>
+          </h1>
+          <p className="text-xs text-slate-400 mt-1">Tuesday, 15 July 2025 | buyer.velaanbay.in</p>
+        </div>
+        <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-md text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-xs">
+          <span>🔔 Notifications</span>
+          <span className="w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] font-bold">3</span>
+        </button>
+      </div>
+
+      {/* Wallet Balance Hero Card */}
+      <div className="bg-gradient-to-r from-[#236361] to-[#1a4a49] text-white rounded-xl p-6 shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="space-y-2">
+          <span className="text-[10px] font-bold text-slate-300 tracking-widest uppercase">Wallet Balance</span>
+          <div className="text-4xl font-extrabold tracking-tight">₹ 24,500</div>
+          <div className="text-xs text-slate-300">
+            Available: <strong className="text-white">₹18,000</strong> &nbsp;|&nbsp; On Hold (Bids): <strong className="text-white">₹6,500</strong>
+          </div>
+        </div>
+        <div className="flex gap-3 shrink-0">
+          <button
+            onClick={() => onActionClick('top-up')}
+            className="px-5 py-2.5 bg-white text-[#1a4a49] font-bold rounded-lg text-sm shadow-sm hover:bg-slate-50 transition"
+          >
+            ↑ Top Up
+          </button>
+          <button
+            onClick={() => onActionClick('withdraw')}
+            className="px-5 py-2.5 bg-[#173e3d] border border-white/20 text-white font-bold rounded-lg text-sm hover:bg-[#112f2e] transition"
+          >
+            ↓ Withdraw
+          </button>
+        </div>
+      </div>
+
+      {/* 4 KPI Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1 */}
+        <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-3">
+          <span className="text-[9px] font-bold text-slate-400 tracking-wider uppercase">Active Bids</span>
+          <div className="text-3xl font-extrabold text-slate-800">3</div>
+          <div className="text-xs text-slate-400">2 live auctions now</div>
+          <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+            <div className="bg-[#1b4d4f] h-full w-2/3"></div>
+          </div>
+        </div>
+
+        {/* Card 2 */}
+        <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-3">
+          <span className="text-[9px] font-bold text-slate-400 tracking-wider uppercase">Pending Deliveries</span>
+          <div className="text-3xl font-extrabold text-slate-800">2</div>
+          <div className="text-xs text-slate-400">Expected today: 1</div>
+          <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+            <div className="bg-[#1b4d4f] h-full w-1/2"></div>
+          </div>
+        </div>
+
+        {/* Card 3 */}
+        <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-3">
+          <span className="text-[9px] font-bold text-slate-400 tracking-wider uppercase">This Month Purchases</span>
+          <div className="text-3xl font-extrabold text-slate-800">₹1.2L</div>
+          <div className="text-xs text-emerald-600 font-medium">↑ 18% vs last month</div>
+          <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+            <div className="bg-[#1b4d4f] h-full w-3/4"></div>
+          </div>
+        </div>
+
+        {/* Card 4 */}
+        <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-3">
+          <span className="text-[9px] font-bold text-slate-400 tracking-wider uppercase">Registered Agents</span>
+          <div className="text-3xl font-extrabold text-slate-800">4</div>
+          <div className="text-xs text-slate-400">3 approved, 1 pending</div>
+          <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+            <div className="bg-[#1b4d4f] h-full w-4/5"></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-4">
+        <h3 className="text-sm font-bold text-slate-800">Quick Actions</h3>
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() => onActionClick('auctions-list')}
+            className="inline-flex items-center gap-2 text-xs font-bold text-white bg-[#1b4d4f] px-4 py-2.5 rounded-md hover:bg-[#123637] transition"
+          >
+            🛍️ Browse Auctions
+          </button>
+          <button
+            onClick={() => onActionClick('post-demand')}
+            className="inline-flex items-center gap-2 text-xs font-bold text-[#1b4d4f] bg-white border border-slate-300 px-4 py-2.5 rounded-md hover:bg-slate-50 transition"
+          >
+            📋 Post Demand
+          </button>
+          <button
+            onClick={() => onActionClick('top-up')}
+            className="inline-flex items-center gap-2 text-xs font-bold text-[#1b4d4f] bg-white border border-slate-300 px-4 py-2.5 rounded-md hover:bg-slate-50 transition"
+          >
+            💰 Top Up Wallet
+          </button>
+          <button
+            onClick={() => onActionClick('contract-harvesting')}
+            className="inline-flex items-center gap-2 text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 px-4 py-2.5 rounded-md transition shadow-2xs"
+          >
+            🚜 Contract Sourcing
+          </button>
+          <button
+            onClick={() => onActionClick('marketplace')}
+            className="inline-flex items-center gap-2 text-xs font-bold text-[#1b4d4f] bg-white border border-slate-300 px-4 py-2.5 rounded-md hover:bg-slate-50 transition"
+          >
+            📈 Fixed Marketplace
+          </button>
+          <button
+            onClick={() => onActionClick('agents')}
+            className="inline-flex items-center gap-2 text-xs font-bold text-[#1b4d4f] bg-white border border-slate-300 px-4 py-2.5 rounded-md hover:bg-slate-50 transition"
+          >
+            🔍 Find Agents
+          </button>
+          <button
+            onClick={() => onActionClick('whatsapp-chat')}
+            className="inline-flex items-center gap-2 text-xs font-bold text-white bg-[#25d366] hover:bg-[#1ebe5d] px-4 py-2.5 rounded-md transition shadow-xs"
+          >
+            💬 WhatsApp Chat
+          </button>
+        </div>
+      </div>
+
+      {/* Live price ticker strip */}
+      <div className="flex items-center bg-[#1b4d4f] text-white rounded-lg p-3 overflow-hidden shadow-xs">
+        <div className="bg-white text-[#1b4d4f] text-[10px] font-bold px-2 py-0.5 rounded-sm mr-4 shrink-0">
+          LIVE PRICES
+        </div>
+        <div className="flex-1 overflow-hidden">
+          <Marquee className="text-xs font-medium text-slate-200" scrollamount="3">
+            Paddy: ₹1,840/q ▲ 2.1% &nbsp;&nbsp;|&nbsp;&nbsp; Onion: ₹2,200/q ▼ 1.5% &nbsp;&nbsp;|&nbsp;&nbsp; Tomato: ₹1,100/q ▲ 0.8% &nbsp;&nbsp;|&nbsp;&nbsp; Groundnut: ₹5,200/q ▲ 3.2% &nbsp;&nbsp;|&nbsp;&nbsp; Cotton: ₹6,400/q ▼ 0.5% &nbsp;&nbsp;|&nbsp;&nbsp; Wheat: ₹2,150/q ▲ 1.0%
+          </Marquee>
+        </div>
+      </div>
+
+      {/* Bottom Grid: Recent Purchases & Notifications */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Purchases */}
+        <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-sm font-bold text-slate-800">Recent Purchases</h3>
+            <button className="text-xs font-bold text-[#1b4d4f] border border-[#1b4d4f] px-3 py-1 rounded-md hover:bg-teal-50 transition">
+              View All
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-slate-100 text-slate-400 font-semibold">
+                  <th className="py-2.5">Product</th>
+                  <th className="py-2.5">Qty</th>
+                  <th className="py-2.5">Amount</th>
+                  <th className="py-2.5">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                {recentPurchases.map((item, idx) => (
+                  <tr key={idx}>
+                    <td className="py-3">{item.product}</td>
+                    <td className="py-3">{item.qty}</td>
+                    <td className="py-3">{item.amount}</td>
+                    <td className="py-3">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${item.statusColor}`}>
+                        {item.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Notifications */}
+        <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-sm font-bold text-slate-800">Notifications</h3>
+            <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">3 new</span>
+          </div>
+          <div className="space-y-4">
+            {notifications.map((item, idx) => (
+              <div key={idx} className="flex gap-3 text-xs leading-normal">
+                <span className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${item.dotColor}`}></span>
+                <div className="space-y-0.5">
+                  <p className="text-slate-700 font-semibold">{item.text}</p>
+                  <p className="text-[10px] text-slate-400">{item.time}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Logout button in details view */}
+      <div className="pt-6 border-t border-slate-200 flex justify-end">
+        <Button variant="secondary" onClick={onLogout}>
+          Logout to Public Landing Page
+        </Button>
+      </div>
+    </div>
+  );
+};
