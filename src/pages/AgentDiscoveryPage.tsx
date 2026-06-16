@@ -1,5 +1,4 @@
 import React from 'react';
-import { BackButton } from '../components/BackButton';
 
 interface AgentDiscoveryPageProps {
   onBackToMarkets: () => void;
