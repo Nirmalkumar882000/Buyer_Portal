@@ -36,7 +36,7 @@ interface AuthContextValue {
 
 const SESSION_KEY = 'vb_auth_session';
 const INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000;   // 15 min → auto-logout
-const INACTIVITY_WARN_MS   = 14 * 60 * 1000;    // 14 min → show warning
+const INACTIVITY_WARN_MS = 14 * 60 * 1000;    // 14 min → show warning
 const OTP_MAX_ATTEMPTS = 3;
 const OTP_LOCKOUT_SECONDS = 120;                  // 2 min lockout after 3 wrong OTPs
 
@@ -54,7 +54,7 @@ export const useAuth = (): AuthContextValue => {
 
 function readSession(): AuthUser | null {
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
+    const raw = localStorage.getItem(SESSION_KEY);
     if (!raw) return null;
     return JSON.parse(raw) as AuthUser;
   } catch {
@@ -64,9 +64,9 @@ function readSession(): AuthUser | null {
 
 function writeSession(user: AuthUser | null) {
   if (user) {
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(user));
+    localStorage.setItem(SESSION_KEY, JSON.stringify(user));
   } else {
-    sessionStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(SESSION_KEY);
   }
 }
 
@@ -76,20 +76,20 @@ export const AuthProvider: React.FC<{
   children: React.ReactNode;
   onLogout?: (reason: 'manual' | 'inactivity' | 'session_expired') => void;
 }> = ({ children, onLogout }) => {
-  const [user, setUser]                           = useState<AuthUser | null>(readSession);
-  const [otpAttempts, setOtpAttempts]             = useState(0);
-  const [isOtpLocked, setIsOtpLocked]             = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(readSession);
+  const [otpAttempts, setOtpAttempts] = useState(0);
+  const [isOtpLocked, setIsOtpLocked] = useState(false);
   const [otpLockSecondsLeft, setOtpLockSecondsLeft] = useState(0);
-  const [lastActivityAt, setLastActivityAt]       = useState(Date.now());
+  const [lastActivityAt, setLastActivityAt] = useState(Date.now());
   const [sessionSecondsLeft, setSessionSecondsLeft] = useState(
     Math.round(INACTIVITY_TIMEOUT_MS / 1000)
   );
   const [inactivityWarning, setInactivityWarning] = useState(false);
 
   const isAuthenticated = !!user;
-  const inactivityRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const tickerRef        = useRef<ReturnType<typeof setInterval> | null>(null);
-  const otpLockRef       = useRef<ReturnType<typeof setInterval> | null>(null);
+  const inactivityRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tickerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const otpLockRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ── Logout ────────────────────────────────────────────────────────────────
 
@@ -97,9 +97,11 @@ export const AuthProvider: React.FC<{
     (reason: 'manual' | 'inactivity' | 'session_expired' = 'manual') => {
       setUser(null);
       writeSession(null);
+      localStorage.removeItem('buyer_token');
+      localStorage.removeItem('buyer_user');
       setInactivityWarning(false);
       if (inactivityRef.current) clearTimeout(inactivityRef.current);
-      if (tickerRef.current)     clearInterval(tickerRef.current);
+      if (tickerRef.current) clearInterval(tickerRef.current);
       onLogout?.(reason);
     },
     [onLogout]

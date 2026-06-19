@@ -1,11 +1,15 @@
 import { useState } from 'react';
+import { Routes, Route, useNavigate, useLocation, Navigate, Outlet } from 'react-router-dom';
 import { ToastProvider, useToast } from './context/ToastContext';
 import { LoadingProvider } from './context/LoadingContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import { Loader } from './components/Loader';
 import { LandingPage } from './pages/LandingPage';
 import { RegisterStep1 } from './pages/RegisterStep1';
 import { RegisterStep2 } from './pages/RegisterStep2';
 import { OtpVerify } from './pages/OtpVerify';
+import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { MarketDiscoveryPage } from './pages/MarketDiscoveryPage';
 import { AgentDiscoveryPage } from './pages/AgentDiscoveryPage';
@@ -35,44 +39,33 @@ import { WhatsAppChatPage } from './pages/WhatsAppChatPage';
 import { ProfileSettingsPage } from './pages/ProfileSettingsPage';
 import { FeedbackPage } from './pages/FeedbackPage';
 import { AppShell } from './layouts/AppShell';
+import { ParticlesBackground } from './components/ParticlesBackground';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 
-type ViewState =
-  | 'landing'
-  | 'register-step1'
-  | 'register-step2'
-  | 'otp-verify'
-  | 'dashboard'
-  | 'auctions'
-  | 'agents'
-  | 'profile'
-  | 'my-agents'
-  | 'auctions-list'
-  | 'bidding'
-  | 'won'
-  | 'marketplace'
-  | 'product-detail'
-  | 'checkout'
-  | 'order-success'
-  | 'wallet'
-  | 'top-up'
-  | 'withdraw'
-  | 'credit-request'
-  | 'demand-board'
-  | 'post-demand'
-  | 'contract-harvesting'
-  | 'contract-harvesting-detail'
-  | 'transport-booking'
-  | 'delivery-tracking'
-  | 'reports'
-  | 'market-prices'
-  | 'notifications'
-  | 'whatsapp-chat'
-  | 'settings'
-  | 'feedback';
+const AuthLayout = () => {
+  const { isAuthenticated } = useAuth();
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col py-8 sm:py-12 relative bg-[#2a4d4c] overflow-x-hidden">
+      <ParticlesBackground />
+      <div className="m-auto w-full sm:max-w-4xl px-4 sm:px-6 relative z-10">
+        <Outlet />
+      </div>
+    </div>
+  );
+};
 
 function AppContent() {
   const { showToast } = useToast();
-  const [currentView, setCurrentView] = useState<ViewState>('landing');
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login, logout, isAuthenticated } = useAuth();
+
   const [orderSummary, setOrderSummary] = useState<any>(null);
   const [walletAvailable, setWalletAvailable] = useState<number>(18000);
   const [unreadNotifications, setUnreadNotifications] = useState<number>(2);
@@ -153,17 +146,17 @@ function AppContent() {
 
   // Form State
   const [formData, setFormData] = useState({
-    fullName: 'Ravi Kumar',
-    mobile: '+91 98765 43210',
-    email: 'name@example.com',
+    fullName: '',
+    mobile: '',
+    email: '',
     businessName: '',
-    businessType: 'Wholesale Trader',
-    state: 'Tamil Nadu',
-    district: 'Thoothukudi',
-    city: 'Thoothukudi',
+    businessType: '',
+    state: '',
+    district: '',
+    city: '',
     gstin: '',
-    turnover: '₹10L – ₹50L',
-    address: '2/58K, Shri Lakshmi Complex, Kayamozhi Road, Thoothukudi – 628213',
+    turnover: '',
+    address: '',
     commodities: {
       paddyRice: true,
       wheat: true,
@@ -182,380 +175,152 @@ function AppContent() {
   });
 
   const handleLogout = () => {
-    setCurrentView('landing');
+    logout();
+    navigate('/');
   };
+
+  const path = location.pathname.substring(1) || 'landing';
+  let activeMenu = path;
+  if (['product-detail', 'checkout', 'order-success', 'contract-harvesting', 'contract-harvesting-detail'].includes(path)) {
+    activeMenu = 'marketplace';
+  } else if (['top-up', 'withdraw', 'credit-request'].includes(path)) {
+    activeMenu = 'wallet';
+  } else if (['post-demand'].includes(path)) {
+    activeMenu = 'demand-board';
+  } else if (['transport-booking', 'delivery-tracking', 'notifications', 'whatsapp-chat', 'feedback'].includes(path)) {
+    activeMenu = 'dashboard';
+  }
 
   return (
     <>
-      {/* Global Loader Indicator overlay */}
       <Loader />
 
-      {currentView === 'landing' && (
-        <LandingPage
-          onRegisterClick={() => setCurrentView('register-step1')}
-          onLoginClick={() => setCurrentView('otp-verify')}
-        />
-      )}
+      <Routes>
+        <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage onRegisterClick={() => navigate('/register-step1')} onLoginClick={() => navigate('/login')} />} />
 
-      {currentView !== 'landing' && (
-        <AppShell
-          activeMenu={currentView === 'product-detail' || currentView === 'checkout' || currentView === 'order-success' || currentView === 'contract-harvesting' || currentView === 'contract-harvesting-detail' ? 'marketplace' : currentView === 'top-up' || currentView === 'withdraw' || currentView === 'credit-request' ? 'wallet' : currentView === 'post-demand' ? 'demand-board' : currentView === 'transport-booking' || currentView === 'delivery-tracking' || currentView === 'notifications' || currentView === 'whatsapp-chat' || currentView === 'feedback' ? 'dashboard' : currentView === 'settings' ? 'settings' : currentView}
-          onMenuClick={(menu) => setCurrentView(menu as any)}
-          walletBalance={`₹ ${(walletAvailable + walletOnHold).toLocaleString()}`}
-          unreadCount={unreadNotifications}
-        >
-          {currentView === 'register-step1' && (
-            <RegisterStep1
-              formData={formData}
-              setFormData={setFormData}
-              onNext={() => setCurrentView('register-step2')}
-              onLoginClick={() => setCurrentView('otp-verify')}
-            />
-          )}
+        <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage onLoginSuccess={() => navigate('/dashboard', { replace: true })} onBack={() => navigate('/')} onRegisterClick={() => navigate('/register-step1')} />} />
 
-          {currentView === 'register-step2' && (
-            <RegisterStep2
-              formData={formData}
-              setFormData={setFormData}
-              onBack={() => setCurrentView('register-step1')}
-              onSubmit={() => setCurrentView('otp-verify')}
-            />
-          )}
+        <Route element={<AuthLayout />}>
+          <Route path="/register-step1" element={<RegisterStep1 formData={formData} setFormData={setFormData} onNext={() => navigate('/register-step2')} onLoginClick={() => navigate('/login')} onBack={() => navigate('/')} />} />
+          <Route path="/register-step2" element={<RegisterStep2 formData={formData} setFormData={setFormData} onBack={() => navigate('/register-step1')} onSubmit={() => navigate('/otp-verify')} />} />
+          <Route path="/otp-verify" element={
+            <OtpVerify mobile={formData.mobile} onBack={() => navigate('/register-step2')} onVerify={() => {
+              login({ fullName: formData.fullName, mobile: formData.mobile, sessionStart: Date.now() });
+              navigate('/dashboard', { replace: true });
+            }} />
+          } />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+        </Route>
 
-          {currentView === 'otp-verify' && (
-            <OtpVerify mobile={formData.mobile} onVerify={() => setCurrentView('dashboard')} />
-          )}
-
-          {currentView === 'dashboard' && (
-            <DashboardPage
-              formData={formData}
+        <Route element={<ProtectedRoute />}>
+          <Route element={
+            <AppShell
+              activeMenu={activeMenu}
+              onMenuClick={(menu) => navigate(`/${menu}`)}
+              walletBalance={`₹ ${(walletAvailable + walletOnHold).toLocaleString()}`}
+              unreadCount={unreadNotifications}
               onLogout={handleLogout}
-              onActionClick={(view) => setCurrentView(view as any)}
-            />
-          )}
+            >
+              <Outlet />
+            </AppShell>
+          }>
+            <Route path="/dashboard" element={<DashboardPage formData={formData} onLogout={handleLogout} onActionClick={(view) => navigate(`/${view}`)} />} />
+            <Route path="/auctions" element={<MarketDiscoveryPage onBrowseAgents={() => navigate('/agents')} />} />
+            <Route path="/agents" element={<AgentDiscoveryPage onBackToMarkets={() => navigate('/auctions')} onViewAuctions={() => navigate('/auctions-list')} onViewProfile={() => navigate('/profile')} />} />
+            <Route path="/profile" element={<AgentProfilePage onBackToAgents={() => navigate('/agents')} onSubmitRequest={() => { showToast('Registration request sent successfully!', 'success'); navigate('/my-agents'); }} />} />
+            <Route path="/my-agents" element={<MyAgentsPage onFindNewAgents={() => navigate('/auctions')} onViewAuctions={() => navigate('/auctions-list')} />} />
+            <Route path="/auctions-list" element={<LiveAuctionsPage onJoinAuction={() => navigate('/bidding')} onBackToDashboard={() => navigate('/dashboard')} />} />
+            <Route path="/bidding" element={<LiveBiddingPage onBackToAuctions={() => navigate('/auctions-list')} onPlaceBidSuccess={() => navigate('/won')} />} />
+            <Route path="/won" element={<AuctionWonPage onBackToAuctions={() => navigate('/auctions-list')} onBookTransport={() => navigate('/transport-booking')} />} />
+            <Route path="/marketplace" element={<MarketplacePage onBackToDashboard={() => navigate('/dashboard')} onSelectProduct={() => navigate('/product-detail')} />} />
+            <Route path="/product-detail" element={
+              <ProductDetailPage
+                onBackToMarketplace={() => navigate('/marketplace')}
+                onBuyNow={(order) => {
+                  const items = [
+                    { id: '1', name: 'Paddy (Ponni) – Grade A', emoji: '🌾', grade: 'Grade A', seller: 'Murugan Kandasamy | Thoothukudi', pricePerKg: 19.5, qty: order.qty, bg: 'bg-emerald-50/70' },
+                    { id: '2', name: 'Groundnut (Bold) – Grade B', emoji: '🥜', grade: 'Grade B', seller: 'Rajan Farm | Thoothukudi', pricePerKg: 52.0, qty: 500, bg: 'bg-amber-50/40' }
+                  ];
+                  const subtotal = order.qty * 19.5 + 500 * 52.0;
+                  setOrderSummary({ items, subtotal, paymentMethod: order.paymentMethod, deliveryAddress: formData.address });
+                  navigate('/checkout');
+                }}
+              />
+            } />
+            <Route path="/checkout" element={<CheckoutPage initialCart={orderSummary?.items} onBackToMarketplace={() => navigate('/marketplace')} onPlaceOrder={(summary) => { setOrderSummary(summary); navigate('/order-success'); }} />} />
+            <Route path="/order-success" element={<OrderSuccessPage orderSummary={orderSummary} onBackToMarketplace={() => navigate('/marketplace')} onBookTransport={() => navigate('/transport-booking')} onRateTransaction={() => navigate('/feedback')} />} />
 
-          {currentView === 'auctions' && (
-            <MarketDiscoveryPage onBrowseAgents={() => setCurrentView('agents')} />
-          )}
+            <Route path="/wallet" element={
+              <WalletPage
+                availableBalance={walletAvailable}
+                onHoldBalance={walletOnHold}
+                onTopUpClick={() => navigate('/top-up')}
+                onWithdrawClick={() => navigate('/withdraw')}
+                onRequestCreditClick={() => navigate('/credit-request')}
+                onInvoiceClick={(ref) => {
+                  if (ref === 'INV-9012') {
+                    setOrderSummary({
+                      items: [{ name: 'Groundnut (Bold) – Grade B', emoji: '🥜', pricePerKg: 52.0, qty: 500 }],
+                      subtotal: 26000, paymentMethod: 'wallet', deliveryAddress: formData.address
+                    });
+                  } else {
+                    setOrderSummary({
+                      items: [{ name: 'Paddy (Ponni) – Grade A', emoji: '🌾', pricePerKg: 19.5, qty: 50000 }],
+                      subtotal: 975000, paymentMethod: 'wallet', deliveryAddress: formData.address
+                    });
+                  }
+                  navigate('/order-success');
+                }}
+                onBackToDashboard={() => navigate('/dashboard')}
+              />
+            } />
 
-          {currentView === 'agents' && (
-            <AgentDiscoveryPage
-              onBackToMarkets={() => setCurrentView('auctions')}
-              onViewAuctions={() => setCurrentView('auctions-list')}
-              onViewProfile={() => setCurrentView('profile')}
-            />
-          )}
+            <Route path="/top-up" element={<TopUpPage currentAvailableBalance={walletAvailable} onBackToWallet={() => navigate('/wallet')} onTopUpSuccess={(amount) => { setWalletAvailable((prev) => prev + amount); navigate('/wallet'); showToast(`₹${amount.toLocaleString()} added to your wallet!`, 'success'); }} />} />
+            <Route path="/withdraw" element={<WithdrawPage availableBalance={walletAvailable} onHoldBalance={walletOnHold} onBackToWallet={() => navigate('/wallet')} onWithdrawSuccess={(amount) => { setWalletAvailable((prev) => prev - amount); navigate('/wallet'); showToast(`₹${amount.toLocaleString()} withdrawn to your Kotak Mahindra Bank account.`, 'success'); }} />} />
+            <Route path="/credit-request" element={<CreditRequestPage onBackToWallet={() => navigate('/wallet')} />} />
 
-          {currentView === 'profile' && (
-            <AgentProfilePage
-              onBackToAgents={() => setCurrentView('agents')}
-              onSubmitRequest={() => { showToast('Registration request sent successfully!', 'success'); setCurrentView('my-agents'); }}
-            />
-          )}
+            <Route path="/demand-board" element={
+              <DemandBoardPage
+                demands={demands}
+                onCloseDemand={(id) => {
+                  setDemands((prev) => prev.map((d) => d.id === id ? { ...d, status: 'completed', borderColorClass: 'border-l-4 border-slate-400', expiresInDays: 0 } : d));
+                  showToast('Demand closed and moved to Completed.', 'success');
+                }}
+                onPostNewDemandClick={() => navigate('/post-demand')}
+                onViewQuotesClick={(id) => showToast(`Loading quotes for demand ${id}...`, 'info')}
+                onBackToDashboard={() => navigate('/dashboard')}
+              />
+            } />
+            <Route path="/post-demand" element={<PostDemandPage onCancel={() => navigate('/demand-board')} onPostDemandSuccess={(newDemand) => { setDemands((prev) => [{ ...newDemand, id: 'D' + (prev.length + 1), postedDate: 'Today', status: 'active', quotesCount: 0, expiresInDays: 7, borderColorClass: 'border-l-4 border-slate-300' }, ...prev]); navigate('/demand-board'); showToast('Demand posted successfully!', 'success'); }} />} />
 
-          {currentView === 'my-agents' && (
-            <MyAgentsPage
-              onFindNewAgents={() => setCurrentView('auctions')}
-              onViewAuctions={() => setCurrentView('auctions-list')}
-            />
-          )}
+            <Route path="/contract-harvesting" element={<ContractHarvestingPage onDetailsClick={() => navigate('/contract-harvesting-detail')} onRequestInfoClick={(id) => showToast(`Info request sent for offer ${id}. You'll be notified when they reply.`, 'info')} onBackToDashboard={() => navigate('/dashboard')} />} />
+            <Route path="/contract-harvesting-detail" element={<ContractHarvestingDetailPage onBackToList={() => navigate('/contract-harvesting')} />} />
+            <Route path="/transport-booking" element={<TransportBookingPage onBookingConfirm={() => navigate('/delivery-tracking')} onBackToDashboard={() => navigate('/dashboard')} />} />
+            <Route path="/delivery-tracking" element={<DeliveryTrackingPage onBackToDashboard={() => navigate('/dashboard')} />} />
+            <Route path="/reports" element={<ReportsPage deliveryAddress={formData.address} onViewInvoice={(summary) => { setOrderSummary(summary); navigate('/order-success'); }} onBackToDashboard={() => navigate('/dashboard')} />} />
+            <Route path="/market-prices" element={<MarketPricesPage />} />
+            <Route path="/notifications" element={<NotificationsPage onNavigate={(view, params) => { if (params && view === 'order-success') { setOrderSummary(params); } navigate(`/${view}`); }} onMarkAllReadGlobal={() => setUnreadNotifications(0)} />} />
+            <Route path="/whatsapp-chat" element={<WhatsAppChatPage onBackToDashboard={() => navigate('/dashboard')} />} />
+            <Route path="/settings" element={<ProfileSettingsPage formData={formData} onBackToDashboard={() => navigate('/dashboard')} />} />
+            <Route path="/feedback" element={<FeedbackPage onSubmit={() => navigate('/dashboard')} onBack={() => navigate('/order-success')} />} />
+          </Route>
+        </Route>
 
-          {currentView === 'auctions-list' && (
-            <LiveAuctionsPage
-              onJoinAuction={() => setCurrentView('bidding')}
-              onBackToDashboard={() => setCurrentView('dashboard')}
-            />
-          )}
-
-          {currentView === 'bidding' && (
-            <LiveBiddingPage
-              onBackToAuctions={() => setCurrentView('auctions-list')}
-              onPlaceBidSuccess={() => setCurrentView('won')}
-            />
-          )}
-
-          {currentView === 'won' && (
-            <AuctionWonPage
-              onBackToAuctions={() => setCurrentView('auctions-list')}
-              onBookTransport={() => setCurrentView('transport-booking')}
-            />
-          )}
-
-          {currentView === 'marketplace' && (
-            <MarketplacePage
-              onBackToDashboard={() => setCurrentView('dashboard')}
-              onSelectProduct={() => {
-                setCurrentView('product-detail');
-              }}
-            />
-          )}
-
-          {currentView === 'product-detail' && (
-            <ProductDetailPage
-              onBackToMarketplace={() => setCurrentView('marketplace')}
-              onBuyNow={(order) => {
-                // Initialize default cart pre-filled with this item, plus Groundnut as shown in mockup
-                const items = [
-                  {
-                    id: '1',
-                    name: 'Paddy (Ponni) – Grade A',
-                    emoji: '🌾',
-                    grade: 'Grade A',
-                    seller: 'Murugan Kandasamy | Thoothukudi',
-                    pricePerKg: 19.5,
-                    qty: order.qty,
-                    bg: 'bg-emerald-50/70',
-                  },
-                  {
-                    id: '2',
-                    name: 'Groundnut (Bold) – Grade B',
-                    emoji: '🥜',
-                    grade: 'Grade B',
-                    seller: 'Rajan Farm | Thoothukudi',
-                    pricePerKg: 52.0,
-                    qty: 500,
-                    bg: 'bg-amber-50/40',
-                  },
-                ];
-                const subtotal = order.qty * 19.5 + 500 * 52.0;
-
-                setOrderSummary({
-                  items,
-                  subtotal,
-                  paymentMethod: order.paymentMethod,
-                  deliveryAddress: formData.address,
-                });
-                setCurrentView('checkout');
-              }}
-            />
-          )}
-
-          {currentView === 'checkout' && (
-            <CheckoutPage
-              initialCart={orderSummary?.items}
-              onBackToMarketplace={() => setCurrentView('marketplace')}
-              onPlaceOrder={(summary) => {
-                setOrderSummary(summary);
-                setCurrentView('order-success');
-              }}
-            />
-          )}
-
-          {currentView === 'order-success' && (
-            <OrderSuccessPage
-              orderSummary={orderSummary}
-              onBackToMarketplace={() => setCurrentView('marketplace')}
-              onBookTransport={() => setCurrentView('transport-booking')}
-              onRateTransaction={() => setCurrentView('feedback')}
-            />
-          )}
-
-          {currentView === 'wallet' && (
-            <WalletPage
-              availableBalance={walletAvailable}
-              onHoldBalance={walletOnHold}
-              onTopUpClick={() => setCurrentView('top-up')}
-              onWithdrawClick={() => setCurrentView('withdraw')}
-              onRequestCreditClick={() => setCurrentView('credit-request')}
-              onInvoiceClick={(ref) => {
-                // Set mock invoice details matching the clicked reference
-                if (ref === 'INV-9012') {
-                  setOrderSummary({
-                    items: [
-                      {
-                        name: 'Groundnut (Bold) – Grade B',
-                        emoji: '🥜',
-                        pricePerKg: 52.0,
-                        qty: 500,
-                      },
-                    ],
-                    subtotal: 26000,
-                    paymentMethod: 'wallet',
-                    deliveryAddress: formData.address,
-                  });
-                } else {
-                  setOrderSummary({
-                    items: [
-                      {
-                        name: 'Paddy (Ponni) – Grade A',
-                        emoji: '🌾',
-                        pricePerKg: 19.5,
-                        qty: 50000, // 975000 / 19.5 = 50000 kg
-                      },
-                    ],
-                    subtotal: 975000,
-                    paymentMethod: 'wallet',
-                    deliveryAddress: formData.address,
-                  });
-                }
-                setCurrentView('order-success');
-              }}
-              onBackToDashboard={() => setCurrentView('dashboard')}
-            />
-          )}
-
-          {currentView === 'top-up' && (
-            <TopUpPage
-              currentAvailableBalance={walletAvailable}
-              onBackToWallet={() => setCurrentView('wallet')}
-              onTopUpSuccess={(amount) => {
-                setWalletAvailable((prev) => prev + amount);
-                setCurrentView('wallet');
-                showToast(`₹${amount.toLocaleString()} added to your wallet!`, 'success');
-              }}
-            />
-          )}
-
-          {currentView === 'withdraw' && (
-            <WithdrawPage
-              availableBalance={walletAvailable}
-              onHoldBalance={walletOnHold}
-              onBackToWallet={() => setCurrentView('wallet')}
-              onWithdrawSuccess={(amount) => {
-                setWalletAvailable((prev) => prev - amount);
-                setCurrentView('wallet');
-                showToast(`₹${amount.toLocaleString()} withdrawn to your Kotak Mahindra Bank account.`, 'success');
-              }}
-            />
-          )}
-
-          {currentView === 'credit-request' && (
-            <CreditRequestPage onBackToWallet={() => setCurrentView('wallet')} />
-          )}
-
-          {currentView === 'demand-board' && (
-            <DemandBoardPage
-              demands={demands}
-              onCloseDemand={(id) => {
-                setDemands((prev) =>
-                  prev.map((d) =>
-                    d.id === id
-                      ? {
-                        ...d,
-                        status: 'completed',
-                        borderColorClass: 'border-l-4 border-slate-400',
-                        expiresInDays: 0,
-                      }
-                      : d
-                  )
-                );
-                showToast('Demand closed and moved to Completed.', 'success');
-              }}
-              onPostNewDemandClick={() => setCurrentView('post-demand')}
-              onViewQuotesClick={(id) => showToast(`Loading quotes for demand ${id}...`, 'info')}
-              onBackToDashboard={() => setCurrentView('dashboard')}
-            />
-          )}
-
-          {currentView === 'post-demand' && (
-            <PostDemandPage
-              onCancel={() => setCurrentView('demand-board')}
-              onPostDemandSuccess={(newDemand) => {
-                setDemands((prev) => [
-                  {
-                    ...newDemand,
-                    id: 'D' + (prev.length + 1),
-                    postedDate: 'Today',
-                    status: 'active',
-                    quotesCount: 0,
-                    expiresInDays: 7,
-                    borderColorClass: 'border-l-4 border-slate-300',
-                  },
-                  ...prev,
-                ]);
-                setCurrentView('demand-board');
-                showToast('Demand posted successfully!', 'success');
-              }}
-            />
-          )}
-
-          {currentView === 'contract-harvesting' && (
-            <ContractHarvestingPage
-              onDetailsClick={(_id) => setCurrentView('contract-harvesting-detail')}
-              onRequestInfoClick={(id) => showToast(`Info request sent for offer ${id}. You'll be notified when they reply.`, 'info')}
-              onBackToDashboard={() => setCurrentView('dashboard')}
-            />
-          )}
-
-          {currentView === 'contract-harvesting-detail' && (
-            <ContractHarvestingDetailPage
-              onBackToList={() => setCurrentView('contract-harvesting')}
-            />
-          )}
-
-          {currentView === 'transport-booking' && (
-            <TransportBookingPage
-              onBookingConfirm={(_method, _details) => setCurrentView('delivery-tracking')}
-              onBackToDashboard={() => setCurrentView('dashboard')}
-            />
-          )}
-
-          {currentView === 'delivery-tracking' && (
-            <DeliveryTrackingPage
-              onBackToDashboard={() => setCurrentView('dashboard')}
-            />
-          )}
-
-          {currentView === 'reports' && (
-            <ReportsPage
-              deliveryAddress={formData.address}
-              onViewInvoice={(summary) => {
-                setOrderSummary(summary);
-                setCurrentView('order-success');
-              }}
-              onBackToDashboard={() => setCurrentView('dashboard')}
-            />
-          )}
-
-          {currentView === 'market-prices' && (
-            <MarketPricesPage />
-          )}
-
-          {currentView === 'notifications' && (
-            <NotificationsPage
-              onNavigate={(view, params) => {
-                if (params && view === 'order-success') {
-                  setOrderSummary(params);
-                }
-                setCurrentView(view as any);
-              }}
-              onMarkAllReadGlobal={() => setUnreadNotifications(0)}
-            />
-          )}
-
-          {currentView === 'whatsapp-chat' && (
-            <WhatsAppChatPage
-              onBackToDashboard={() => setCurrentView('dashboard')}
-            />
-          )}
-
-          {currentView === 'settings' && (
-            <ProfileSettingsPage
-              formData={formData}
-              onBackToDashboard={() => setCurrentView('dashboard')}
-              onSaveSuccess={() => showToast('Profile saved successfully!', 'success')}
-            />
-          )}
-
-          {currentView === 'feedback' && (
-            <FeedbackPage
-              onSubmit={() => setCurrentView('dashboard')}
-              onBack={() => setCurrentView('order-success')}
-            />
-          )}
-        </AppShell>
-      )}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </>
   );
 }
 
 export default function App() {
   return (
-    <LoadingProvider>
-      <ToastProvider>
-        <AppContent />
-      </ToastProvider>
-    </LoadingProvider>
+    <AuthProvider>
+      <LoadingProvider>
+        <ToastProvider>
+          <AppContent />
+        </ToastProvider>
+      </LoadingProvider>
+    </AuthProvider>
   );
 }
-

@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '../context/ToastContext';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../components/Button';
 import { useLoading } from '../context/LoadingContext';
 import { Skeleton } from '../components/Skeleton';
+import { verifyOtpApi } from '../api/auth';
 
 interface OtpVerifyProps {
   mobile: string;
+  formData?: any;
   onVerify: () => void;
+  onBack: () => void;
 }
 
-export const OtpVerify: React.FC<OtpVerifyProps> = ({ mobile, onVerify }) => {
+export const OtpVerify: React.FC<OtpVerifyProps> = ({ mobile, formData, onVerify, onBack }) => {
   const { showToast } = useToast();
+  const { t } = useTranslation();
   const { withLoading } = useLoading();
   const [internalLoading, setInternalLoading] = useState(false);
   const [digits, setDigits] = useState(['4', '8', '', '', '', '']);
@@ -53,11 +58,30 @@ export const OtpVerify: React.FC<OtpVerifyProps> = ({ mobile, onVerify }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setInternalLoading(true);
-    await withLoading(async () => {
-      await new Promise((res) => setTimeout(res, 1200));
-    });
-    setInternalLoading(false);
-    onVerify();
+
+    try {
+      await withLoading(async () => {
+        const otpCode = digits.join('');
+        const mobile_number = mobile.replace(/[^0-9]/g, '').slice(-10);
+
+        // 1. Verify OTP
+        const verifyRes = await verifyOtpApi({
+          mobile_number,
+          otp: otpCode,
+        });
+
+        if (verifyRes.success) {
+          showToast('Buyer account verified successfully!', 'success');
+          onVerify();
+        } else {
+          showToast(verifyRes.message || 'OTP verification failed', 'error');
+        }
+      });
+    } catch (error: any) {
+      showToast(error.response?.data?.message || 'Verification failed. Please try again.', 'error');
+    } finally {
+      setInternalLoading(false);
+    }
   };
 
   const handleResend = () => {
@@ -66,9 +90,24 @@ export const OtpVerify: React.FC<OtpVerifyProps> = ({ mobile, onVerify }) => {
   };
 
   return (
-    <div className="flex justify-center items-center py-10">
+    <div className="flex flex-col items-center py-4 w-full space-y-4">
+      {/* Header */}
+      <div className="w-full max-w-md">
+        <div className="flex justify-between items-start mb-6 w-full">
+          <div className="flex items-center gap-2 cursor-pointer w-fit group pt-2" onClick={onBack}>
+            <span className="text-white font-bold group-hover:text-slate-200 transition group-hover:-translate-x-1">{t('back')}</span>
+          </div>
+          <img src="/logo.png" alt="VelaanBay Logo" className="h-24 w-auto object-contain drop-shadow-lg" />
+        </div>
+
+        <div className="text-center sm:text-left">
+          <span className="text-xs font-bold text-[#a7f3d0] uppercase tracking-widest">Verification</span>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white mt-1 drop-shadow-md">Verify Your Phone</h2>
+        </div>
+      </div>
+
       {internalLoading ? (
-        <div className="bg-white border border-slate-200 rounded-lg p-8 shadow-xs max-w-sm w-full">
+        <div className="bg-white border border-slate-200 rounded-lg p-8 shadow-xs max-w-md w-full">
           <Skeleton type="list" count={3} />
         </div>
       ) : (
@@ -78,9 +117,9 @@ export const OtpVerify: React.FC<OtpVerifyProps> = ({ mobile, onVerify }) => {
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-xl font-bold text-[#1b4d4f]">Verify Your Mobile</h3>
+            <h3 className="text-xl font-bold text-[#1b4d4f]">{t('verify_otp')}</h3>
             <p className="text-sm text-slate-500">
-              We've sent a 6-digit OTP to <strong className="text-slate-800">{mobile}</strong>
+              {t('enter_code')} <strong className="text-slate-800">{mobile}</strong>
             </p>
           </div>
 
@@ -100,16 +139,16 @@ export const OtpVerify: React.FC<OtpVerifyProps> = ({ mobile, onVerify }) => {
           </div>
 
           <Button type="submit" variant="primary" fullWidth>
-            Verify OTP
+            {t('verify_otp')}
           </Button>
 
           <div className="text-xs text-slate-500">
-            Didn't receive the code?{' '}
+            {t('didnt_receive_code')}{' '}
             {countdown > 0 ? (
-              <span className="text-red-500 font-semibold">Resend OTP (Wait 00:{countdown < 10 ? `0${countdown}` : countdown})</span>
+              <span className="text-red-500 font-semibold">{t('resend_otp')} ({t('resend_in')} 00:{countdown < 10 ? `0${countdown}` : countdown})</span>
             ) : (
               <button type="button" onClick={handleResend} className="text-[#1b4d4f] font-bold hover:underline">
-                Resend OTP
+                {t('resend_otp')}
               </button>
             )}
           </div>

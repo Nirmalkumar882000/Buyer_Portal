@@ -1,4 +1,5 @@
 import React from 'react';
+import { ParticlesBackground } from '../components/ParticlesBackground';
 
 interface LandingPageProps {
   onRegisterClick: () => void;
@@ -21,7 +22,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onRegisterClick, onLog
     <div className="min-h-screen flex flex-col bg-white font-sans text-slate-800">
       {/* Navbar */}
       <nav className="flex justify-between items-center px-6 md:px-20 py-5 bg-[#1b4d4f] border-b border-white/10 shrink-0">
-        <div className="text-xl font-bold text-white flex items-center">
+        <div className="text-xl font-bold text-white flex items-center gap-2">
+          <img src="/logo.png" alt="VelaanBay Logo" className="h-8 w-auto object-contain animate-pulse drop-shadow-md" />
           VelaanBay <span className="text-slate-300 font-normal text-sm ml-1.5 hidden sm:inline">Buyer Portal</span>
         </div>
         <div className="hidden lg:flex items-center gap-7">
@@ -41,8 +43,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onRegisterClick, onLog
       </nav>
 
       {/* Hero Section */}
-      <header className="bg-radial from-[#2b5d4f] to-[#1b4d4f] px-6 md:px-20 py-20 text-white">
-        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-12">
+      <header className="relative overflow-hidden bg-radial from-[#2b5d4f] to-[#1b4d4f] px-6 md:px-20 py-20 text-white">
+        <ParticlesBackground />
+        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-12 relative z-10">
           {/* Left Side Info */}
           <div className="flex-1 space-y-6">
             <h1 className="text-4xl md:text-5xl font-extrabold leading-tight text-white">

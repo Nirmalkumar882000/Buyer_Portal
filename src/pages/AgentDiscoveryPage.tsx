@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { getDistrictAgents } from '../api/markets';
 
 interface AgentDiscoveryPageProps {
   onBackToMarkets: () => void;
@@ -13,44 +15,22 @@ export const AgentDiscoveryPage: React.FC<AgentDiscoveryPageProps> = ({
   onViewProfile,
   marketName = 'Thoothukudi APMC'
 }) => {
-  const agents = [
-    {
-      name: 'Murugan Kandasamy',
-      initials: 'MK',
-      avatarColor: 'border-blue-400 text-blue-500',
-      market: 'Thoothukudi APMC, Tamil Nadu',
-      rating: '4.9',
-      reviews: 142,
-      specialties: ['Paddy', 'Groundnut', 'Wheat'],
-      activeAuctions: 8,
-      lotsPerMonth: '200+',
-      isRegistered: false,
-    },
-    {
-      name: 'Selvam Rajan',
-      initials: 'SR',
-      avatarColor: 'border-amber-400 text-amber-500',
-      market: 'Thoothukudi APMC, Tamil Nadu',
-      rating: '4.3',
-      reviews: 87,
-      specialties: ['Cotton', 'Onion'],
-      activeAuctions: 3,
-      lotsPerMonth: '80+',
-      isRegistered: false,
-    },
-    {
-      name: 'Pandiyan Kumar',
-      initials: 'PK',
-      avatarColor: 'border-emerald-500 text-emerald-600',
-      market: 'Thoothukudi APMC, Tamil Nadu',
-      rating: '4.7',
-      reviews: 203,
-      specialties: ['Paddy', 'Turmeric', 'Chilli'],
-      activeAuctions: 12,
-      lotsPerMonth: '350+',
-      isRegistered: true,
-    },
-  ];
+  const [searchInput, setSearchInput] = useState('');
+  const [searchString, setSearchString] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState('');
+
+  const { data: response, isLoading } = useQuery({
+    queryKey: ['districtAgents', marketName, searchString, selectedProduct],
+    queryFn: () => getDistrictAgents(marketName, searchString, selectedProduct),
+    enabled: !!marketName
+  });
+
+  const agents = Array.isArray(response) ? response : (response?.data || []);
+
+  const handleSearch = () => {
+    setSearchString(searchInput);
+  };
+
 
   return (
     <div className="space-y-6">
@@ -67,7 +47,7 @@ export const AgentDiscoveryPage: React.FC<AgentDiscoveryPageProps> = ({
       <div>
         <h1 className="text-2xl font-bold text-slate-800">Mandi Agents — {marketName}</h1>
         <p className="text-xs text-slate-500 mt-1">
-          12 registered agents at this market. Register with an agent to access live auctions.
+          {isLoading ? 'Loading agents...' : `${agents.length} registered agents at this market. Register with an agent to access live auctions.`}
         </p>
       </div>
 
@@ -77,14 +57,22 @@ export const AgentDiscoveryPage: React.FC<AgentDiscoveryPageProps> = ({
           <input
             type="text"
             placeholder="Search agents..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-md text-sm text-slate-800 outline-hidden transition-all duration-200 focus:border-[#1b4d4f] focus:ring-1 focus:ring-[#1b4d4f]"
           />
         </div>
         <div className="w-full md:w-48">
-          <select className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm text-slate-800 outline-hidden transition-all duration-200 focus:border-[#1b4d4f] focus:ring-1 focus:ring-[#1b4d4f]">
-            <option>Paddy</option>
-            <option>Cotton</option>
-            <option>Onion</option>
+          <select 
+            value={selectedProduct}
+            onChange={(e) => setSelectedProduct(e.target.value)}
+            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm text-slate-800 outline-hidden transition-all duration-200 focus:border-[#1b4d4f] focus:ring-1 focus:ring-[#1b4d4f]"
+          >
+            <option value="">All Commodities</option>
+            <option value="Paddy">Paddy</option>
+            <option value="Cotton">Cotton</option>
+            <option value="Onion">Onion</option>
           </select>
         </div>
         <div className="w-full md:w-48">
@@ -97,7 +85,12 @@ export const AgentDiscoveryPage: React.FC<AgentDiscoveryPageProps> = ({
 
       {/* Agent grid cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {agents.map((agent, idx) => {
+        {isLoading ? (
+          <div className="col-span-full py-10 text-center text-slate-500 font-medium">Loading agents...</div>
+        ) : agents.length === 0 ? (
+          <div className="col-span-full py-10 text-center text-slate-500 font-medium">No agents found.</div>
+        ) : (
+          agents.map((agent: any, idx: number) => {
           const ratingStars = '★'.repeat(Math.round(parseFloat(agent.rating))) + '☆'.repeat(5 - Math.round(parseFloat(agent.rating)));
 
           return (
@@ -182,7 +175,7 @@ export const AgentDiscoveryPage: React.FC<AgentDiscoveryPageProps> = ({
               </div>
             </div>
           );
-        })}
+        }))}
       </div>
     </div>
   );

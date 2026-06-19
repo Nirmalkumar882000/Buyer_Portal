@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { updateProfileApi, getProfileApi } from '../api/auth';
+import { useToast } from '../context/ToastContext';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -34,11 +36,10 @@ const SectionLink: React.FC<{
 }> = ({ id: _id, active, icon, label, onClick }) => (
   <button
     onClick={onClick}
-    className={`w-full text-left flex items-center gap-2.5 px-4 py-3 text-sm font-semibold rounded-md transition-all duration-150 ${
-      active
-        ? 'bg-[#e2f2f1] text-[#1a4a49] border-l-4 border-[#1a4a49]'
-        : 'text-slate-600 hover:bg-slate-50 border-l-4 border-transparent'
-    }`}
+    className={`w-full text-left flex items-center gap-2.5 px-4 py-3 text-sm font-semibold rounded-md transition-all duration-150 ${active
+      ? 'bg-[#e2f2f1] text-[#1a4a49] border-l-4 border-[#1a4a49]'
+      : 'text-slate-600 hover:bg-slate-50 border-l-4 border-transparent'
+      }`}
   >
     <span className="text-base">{icon}</span>
     {label}
@@ -79,26 +80,27 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
   onBackToDashboard,
   onSaveSuccess,
 }) => {
+  const { showToast } = useToast();
   const [activeSection, setActiveSection] = useState<Section>('personal');
 
   // ── Personal Info State ────────────────────────────────────────────────────
   const [editingPersonal, setEditingPersonal] = useState(false);
   const [personalInfo, setPersonalInfo] = useState({
-    fullName: formData.fullName || 'Ravi Kumar',
-    mobile:   formData.mobile   || '+91 98765 43210',
-    email:    formData.email    || 'ravi@kumaragro.in',
-    state:    formData.state    || 'Tamil Nadu',
+    fullName: formData?.fullName || '',
+    mobile: formData?.mobile || '',
+    email: formData?.email || '',
+    state: formData?.state || '',
   });
 
   // ── Business Details State ─────────────────────────────────────────────────
   const [editingBusiness, setEditingBusiness] = useState(false);
   const [businessInfo, setBusinessInfo] = useState({
-    businessName: formData.businessName || 'Kumar Agro Traders',
-    businessType: formData.businessType || 'Wholesale Trader',
-    gstin:        formData.gstin        || '33ABCPK1234F1Z5',
-    district:     formData.district     || 'Thoothukudi',
-    address:      formData.address      || '2/58K, Shri Lakshmi Complex, Kayamozhi Road, Thoothukudi – 628213',
-    turnover:     formData.turnover     || '₹10L – ₹50L',
+    businessName: formData?.businessName || '',
+    businessType: formData?.businessType || '',
+    gstin: formData?.gstin || '',
+    district: formData?.district || '',
+    address: formData?.address || '',
+    turnover: formData?.turnover || '',
   });
 
   // ── Bank Details State ─────────────────────────────────────────────────────
@@ -106,20 +108,63 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
   const [showOtpPrompt, setShowOtpPrompt] = useState(false);
   const [otpInput, setOtpInput] = useState('');
   const [bankInfo, setBankInfo] = useState({
-    bankName:      'Kotak Mahindra Bank',
-    accountNumber: '1234567892954',
-    ifsc:          'KKBK0005798',
-    accountName:   'Kumar Agro Traders',
+    bankName: '',
+    accountNumber: '',
+    ifsc: '',
+    accountName: '',
   });
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await getProfileApi();
+        // Check if the response matches successResponse format { status: true, data: { user: {...} } }
+        const u = res?.data?.user || res?.user;
+        if (u) {
+          setPersonalInfo(p => ({
+            ...p,
+            fullName: u.username || p.fullName,
+            mobile: u.mobile_number || p.mobile,
+            email: u.email || p.email,
+            state: u.state || p.state,
+          }));
+          setBusinessInfo(b => ({
+            ...b,
+            businessName: u.business_name || b.businessName,
+            businessType: u.business_type || b.businessType,
+            gstin: u.gst_no || b.gstin,
+            district: u.district || b.district,
+            address: u.address || b.address,
+            turnover: u.annual_turnover || b.turnover,
+          }));
+          setBankInfo(b => ({
+            ...b,
+            bankName: u.bank_name || b.bankName,
+            accountNumber: u.account_number || b.accountNumber,
+            ifsc: u.ifsc_code || b.ifsc,
+            accountName: u.account_holder || b.accountName,
+          }));
+        }
+      } catch (err) {
+        console.error('Failed to fetch profile', err);
+        showToast('Failed to load profile details.', 'error');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProfile();
+  }, [showToast]);
 
   // ── Notification Preferences State ─────────────────────────────────────────
   const [notifRows, setNotifRows] = useState<NotifRow[]>([
-    { label: 'Auction Win / Outbid',     sms: true,  whatsapp: true,  email: true  },
+    { label: 'Auction Win / Outbid', sms: true, whatsapp: true, email: true },
     { label: 'Wallet Top Up / Withdrawal', sms: true, whatsapp: true, email: false },
-    { label: 'Delivery Updates',          sms: true,  whatsapp: true,  email: false },
-    { label: 'Demand Quotes Received',    sms: false, whatsapp: true,  email: true  },
-    { label: 'Agent Registration Status', sms: true,  whatsapp: true,  email: true  },
-    { label: 'New Auctions Available',    sms: false, whatsapp: true,  email: false },
+    { label: 'Delivery Updates', sms: true, whatsapp: true, email: false },
+    { label: 'Demand Quotes Received', sms: false, whatsapp: true, email: true },
+    { label: 'Agent Registration Status', sms: true, whatsapp: true, email: true },
+    { label: 'New Auctions Available', sms: false, whatsapp: true, email: false },
   ]);
 
   // ── Security State ─────────────────────────────────────────────────────────
@@ -135,7 +180,7 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
   };
 
   const handleBankEditClick = () => {
-    setShowOtpPrompt(true);
+    setEditingBank(true);
   };
 
   const handleOtpVerify = () => {
@@ -146,20 +191,53 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
     }
   };
 
-  const handleSaveAll = () => {
-    setEditingPersonal(false);
-    setEditingBusiness(false);
-    setEditingBank(false);
-    onSaveSuccess?.();
+  const handleSaveAll = async () => {
+    try {
+      const payload = {
+        username: personalInfo.fullName,
+        email: personalInfo.email,
+        state: personalInfo.state,
+        business_name: businessInfo.businessName,
+        business_type: businessInfo.businessType,
+        gst_no: businessInfo.gstin,
+        district: businessInfo.district,
+        address: businessInfo.address,
+        annual_turnover: businessInfo.turnover,
+        bank_name: bankInfo.bankName,
+        account_number: bankInfo.accountNumber,
+        ifsc_code: bankInfo.ifsc,
+        account_holder: bankInfo.accountName,
+      };
+
+      await updateProfileApi(payload);
+
+      setEditingPersonal(false);
+      setEditingBusiness(false);
+      setEditingBank(false);
+      showToast('Profile updated successfully!', 'success');
+      onSaveSuccess?.();
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      showToast('Failed to update profile. Please try again.', 'error');
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1b4d4f] mb-4"></div>
+        <p className="text-slate-500 text-sm font-medium">Loading profile details...</p>
+      </div>
+    );
+  }
 
   // ── Nav sections ───────────────────────────────────────────────────────────
   const sections = [
-    { id: 'personal'      as Section, icon: '👤', label: 'Personal Info'      },
-    { id: 'business'      as Section, icon: '🏢', label: 'Business Details'    },
-    { id: 'bank'          as Section, icon: '🏦', label: 'Bank Details'        },
-    { id: 'notifications' as Section, icon: '🔔', label: 'Notifications'       },
-    { id: 'security'      as Section, icon: '🔒', label: 'Security'            },
+    { id: 'personal' as Section, icon: '👤', label: 'Personal Info' },
+    { id: 'business' as Section, icon: '🏢', label: 'Business Details' },
+    { id: 'bank' as Section, icon: '🏦', label: 'Bank Details' },
+    // { id: 'notifications' as Section, icon: '🔔', label: 'Notifications' },
+    // { id: 'security' as Section, icon: '🔒', label: 'Security' },
   ];
 
   return (
@@ -226,7 +304,7 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
                       Cancel
                     </button>
                     <button
-                      onClick={() => setEditingPersonal(false)}
+                      onClick={handleSaveAll}
                       className="px-3.5 py-2 text-xs font-bold text-white bg-[#1b4d4f] rounded-md hover:bg-[#123637] transition"
                     >
                       Save
@@ -239,19 +317,12 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
                 <Field label="Full Name" value={personalInfo.fullName}
                   editable={editingPersonal} onChange={(v) => setPersonalInfo(p => ({ ...p, fullName: v }))} />
                 <Field label="Mobile" value={personalInfo.mobile}
-                  editable={editingPersonal} type="tel" onChange={(v) => setPersonalInfo(p => ({ ...p, mobile: v }))} />
+                  editable={editingPersonal} readOnly={true} type="tel" onChange={(v) => setPersonalInfo(p => ({ ...p, mobile: v }))} />
                 <Field label="Email" value={personalInfo.email}
                   editable={editingPersonal} type="email" onChange={(v) => setPersonalInfo(p => ({ ...p, email: v }))} />
                 <Field label="State" value={personalInfo.state}
                   editable={editingPersonal} onChange={(v) => setPersonalInfo(p => ({ ...p, state: v }))} />
               </div>
-
-              {editingPersonal && (
-                <div className="bg-amber-50 border border-amber-200 rounded-md p-3 text-xs text-amber-800 font-semibold flex items-start gap-2">
-                  <span>⚠️</span>
-                  <span>Changing your mobile number will require OTP re-verification. Changes sync to the Velaan Bay Mobile App.</span>
-                </div>
-              )}
             </div>
           )}
 
@@ -273,7 +344,7 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
                 ) : (
                   <div className="flex gap-2">
                     <button onClick={() => setEditingBusiness(false)} className="px-3.5 py-2 text-xs font-bold text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Cancel</button>
-                    <button onClick={() => setEditingBusiness(false)} className="px-3.5 py-2 text-xs font-bold text-white bg-[#1b4d4f] rounded-md hover:bg-[#123637] transition">Save</button>
+                    <button onClick={handleSaveAll} className="px-3.5 py-2 text-xs font-bold text-white bg-[#1b4d4f] rounded-md hover:bg-[#123637] transition">Save</button>
                   </div>
                 )}
               </div>
@@ -319,7 +390,7 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
               <div className="flex justify-between items-center pb-3 border-b border-slate-100">
                 <div>
                   <h2 className="text-sm font-bold text-slate-800">Bank Details <span className="text-slate-400 font-normal text-xs">(for Withdrawals)</span></h2>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Editing requires OTP verification for security</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Manage your withdrawal bank account</p>
                 </div>
                 {!editingBank ? (
                   <button
@@ -331,46 +402,12 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
                 ) : (
                   <div className="flex gap-2">
                     <button onClick={() => setEditingBank(false)} className="px-3.5 py-2 text-xs font-bold text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Cancel</button>
-                    <button onClick={() => setEditingBank(false)} className="px-3.5 py-2 text-xs font-bold text-white bg-[#1b4d4f] rounded-md hover:bg-[#123637] transition">Save</button>
+                    <button onClick={handleSaveAll} className="px-3.5 py-2 text-xs font-bold text-white bg-[#1b4d4f] rounded-md hover:bg-[#123637] transition">Save</button>
                   </div>
                 )}
               </div>
 
-              {/* OTP Prompt Modal */}
-              {showOtpPrompt && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 space-y-4">
-                  <div className="flex items-start gap-2">
-                    <span className="text-lg">🔐</span>
-                    <div>
-                      <p className="text-xs font-bold text-blue-900">OTP Verification Required</p>
-                      <p className="text-[10px] text-blue-700 mt-0.5">Enter the 6-digit OTP sent to <strong>{personalInfo.mobile}</strong> to edit bank details.</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-3 items-center">
-                    <input
-                      type="text"
-                      maxLength={6}
-                      value={otpInput}
-                      onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, ''))}
-                      placeholder="Enter OTP"
-                      className="w-36 px-3 py-2.5 border border-blue-300 rounded-md text-xs font-bold text-slate-800 outline-hidden focus:border-[#1b4d4f] text-center tracking-widest"
-                    />
-                    <button
-                      onClick={handleOtpVerify}
-                      className="px-4 py-2.5 bg-[#1b4d4f] text-white text-xs font-bold rounded-md hover:bg-[#123637] transition"
-                    >
-                      Verify &amp; Edit
-                    </button>
-                    <button
-                      onClick={() => setShowOtpPrompt(false)}
-                      className="text-xs text-slate-400 hover:text-slate-600 font-medium"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                  <p className="text-[10px] text-blue-600 font-medium">Demo: Enter any 4+ digits to proceed</p>
-                </div>
-              )}
+
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field label="Bank Name" value={bankInfo.bankName} editable={editingBank}
@@ -386,14 +423,13 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
               {!editingBank && (
                 <div className="bg-slate-50 border border-slate-200 rounded-md p-3 text-[10px] text-slate-500 flex items-center gap-2">
                   <span>🔒</span>
-                  <span>Bank account details are securely masked. Click <strong>Edit</strong> and verify your identity with OTP to update.</span>
+                  <span>Bank account details are securely masked. Click <strong>Edit</strong> to update.</span>
                 </div>
               )}
             </div>
           )}
 
-          {/* ── NOTIFICATION PREFERENCES ──────────────────────────────────── */}
-          {activeSection === 'notifications' && (
+          {/* {activeSection === 'notifications' && (
             <div className="bg-white border border-slate-200 rounded-xl shadow-xs p-6 space-y-5">
               <div className="pb-3 border-b border-slate-100">
                 <h2 className="text-sm font-bold text-slate-800">Notification Preferences</h2>
@@ -423,8 +459,8 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
                                   ? col === 'sms'
                                     ? 'bg-[#1b4d4f] border-[#1b4d4f]'
                                     : col === 'whatsapp'
-                                    ? 'bg-[#25d366] border-[#25d366]'
-                                    : 'bg-blue-600 border-blue-600'
+                                      ? 'bg-[#25d366] border-[#25d366]'
+                                      : 'bg-blue-600 border-blue-600'
                                   : 'bg-white border-slate-300 hover:border-slate-400'
                                 }`}
                               title={`Toggle ${col} for ${row.label}`}
@@ -448,19 +484,18 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
                 <span>Notification settings sync to the <strong>Velaan Bay Mobile App</strong> within 5 minutes. Critical security alerts (logins, withdrawals) are always sent regardless of your preferences.</span>
               </div>
             </div>
-          )}
+          )} */}
 
           {/* ── SECURITY ─────────────────────────────────────────────────── */}
-          {activeSection === 'security' && (
+          {/* {activeSection === 'security' && (
             <div className="space-y-5">
-              {/* Change PIN / Password */}
               <div className="bg-white border border-slate-200 rounded-xl shadow-xs p-6 space-y-4">
                 <div className="pb-3 border-b border-slate-100">
                   <h2 className="text-sm font-bold text-slate-800">Security Settings</h2>
                   <p className="text-[10px] text-slate-400 mt-0.5">Manage your account security and active sessions</p>
                 </div>
 
-                {/* Quick Security Tiles */}
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="border border-slate-200 rounded-lg p-4 space-y-3">
                     <div className="flex items-center gap-2 text-sm font-bold text-slate-800">
@@ -514,7 +549,6 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
                 </div>
               </div>
 
-              {/* Active Sessions */}
               <div className="bg-white border border-slate-200 rounded-xl shadow-xs p-6 space-y-4">
                 <div className="flex justify-between items-center pb-3 border-b border-slate-100">
                   <div>
@@ -545,7 +579,6 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
                 </div>
               </div>
 
-              {/* Danger Zone */}
               <div className="bg-rose-50 border border-rose-200 rounded-xl p-5 space-y-3">
                 <h3 className="text-sm font-bold text-rose-700">⚠ Danger Zone</h3>
                 <p className="text-[10px] text-rose-600 leading-relaxed">
@@ -556,7 +589,7 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
                 </button>
               </div>
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </div>
