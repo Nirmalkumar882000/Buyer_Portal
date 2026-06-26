@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '../components/Button';
 import { Select } from '../components/Select';
 import { getAgentMarkets } from '../api/markets';
+import { AgriLoader } from '../components/AgriLoader';
 
 interface MarketDiscoveryPageProps {
   onBrowseAgents: (marketName: string) => void;
@@ -64,7 +65,7 @@ export const MarketDiscoveryPage: React.FC<MarketDiscoveryPageProps> = ({ onBrow
           />
         </div>
         <div className="w-full md:w-48">
-          <Select 
+          <Select
             value={selectedDistrict}
             onChange={(e) => setSelectedDistrict(e.target.value)}
             options={[
@@ -74,7 +75,7 @@ export const MarketDiscoveryPage: React.FC<MarketDiscoveryPageProps> = ({ onBrow
           />
         </div>
         <div className="w-full md:w-48">
-          <Select 
+          <Select
             value={selectedProduct}
             onChange={(e) => setSelectedProduct(e.target.value)}
             options={[
@@ -98,7 +99,9 @@ export const MarketDiscoveryPage: React.FC<MarketDiscoveryPageProps> = ({ onBrow
         <div className="flex-1 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {isLoading ? (
-              <div className="col-span-full py-10 text-center text-slate-500 font-medium">Loading markets...</div>
+              <div className="col-span-full py-4">
+                <AgriLoader message="Loading markets..." />
+              </div>
             ) : markets.length === 0 ? (
               <div className="col-span-full py-10 text-center text-slate-500 font-medium">No markets found.</div>
             ) : (
@@ -129,7 +132,7 @@ export const MarketDiscoveryPage: React.FC<MarketDiscoveryPageProps> = ({ onBrow
                   </div>
 
                   <button
-                    onClick={() => onBrowseAgents(`${market.district} APMC`)}
+                    onClick={() => onBrowseAgents(market.district)}
                     className={`w-full text-center py-2 rounded-md text-xs font-bold transition-all duration-200 bg-[#1b4d4f] hover:bg-[#13383a] text-white`}
                   >
                     Browse Agents

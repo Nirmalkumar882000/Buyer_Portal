@@ -39,6 +39,7 @@ import { WhatsAppChatPage } from './pages/WhatsAppChatPage';
 import { ProfileSettingsPage } from './pages/ProfileSettingsPage';
 import { FeedbackPage } from './pages/FeedbackPage';
 import { AppShell } from './layouts/AppShell';
+import { SizeProvider } from './context/SizeContext';
 import { ParticlesBackground } from './components/ParticlesBackground';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
@@ -189,6 +190,8 @@ function AppContent() {
     activeMenu = 'demand-board';
   } else if (['transport-booking', 'delivery-tracking', 'notifications', 'whatsapp-chat', 'feedback'].includes(path)) {
     activeMenu = 'dashboard';
+  } else if (['agents', 'profile', 'auctions-list', 'bidding', 'won'].includes(path)) {
+    activeMenu = 'auctions';
   }
 
   return (
@@ -226,9 +229,9 @@ function AppContent() {
             </AppShell>
           }>
             <Route path="/dashboard" element={<DashboardPage formData={formData} onLogout={handleLogout} onActionClick={(view) => navigate(`/${view}`)} />} />
-            <Route path="/auctions" element={<MarketDiscoveryPage onBrowseAgents={() => navigate('/agents')} />} />
-            <Route path="/agents" element={<AgentDiscoveryPage onBackToMarkets={() => navigate('/auctions')} onViewAuctions={() => navigate('/auctions-list')} onViewProfile={() => navigate('/profile')} />} />
-            <Route path="/profile" element={<AgentProfilePage onBackToAgents={() => navigate('/agents')} onSubmitRequest={() => { showToast('Registration request sent successfully!', 'success'); navigate('/my-agents'); }} />} />
+            <Route path="/auctions" element={<MarketDiscoveryPage onBrowseAgents={(district) => navigate(`/agents?district=${encodeURIComponent(district)}`)} />} />
+            <Route path="/agents" element={<AgentDiscoveryPage onBackToMarkets={() => navigate('/auctions')} onViewAuctions={() => navigate('/auctions-list')} onViewProfile={(id) => navigate(`/profile?agent_id=${id}`)} />} />
+            <Route path="/profile" element={<AgentProfilePage formData={formData} onBackToAgents={() => navigate('/agents')} onSubmitRequest={() => navigate('/my-agents')} />} />
             <Route path="/my-agents" element={<MyAgentsPage onFindNewAgents={() => navigate('/auctions')} onViewAuctions={() => navigate('/auctions-list')} />} />
             <Route path="/auctions-list" element={<LiveAuctionsPage onJoinAuction={() => navigate('/bidding')} onBackToDashboard={() => navigate('/dashboard')} />} />
             <Route path="/bidding" element={<LiveBiddingPage onBackToAuctions={() => navigate('/auctions-list')} onPlaceBidSuccess={() => navigate('/won')} />} />
@@ -315,12 +318,14 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <LoadingProvider>
-        <ToastProvider>
-          <AppContent />
-        </ToastProvider>
-      </LoadingProvider>
-    </AuthProvider>
+    <SizeProvider>
+      <AuthProvider>
+        <LoadingProvider>
+          <ToastProvider>
+            <AppContent />
+          </ToastProvider>
+        </LoadingProvider>
+      </AuthProvider>
+    </SizeProvider>
   );
 }

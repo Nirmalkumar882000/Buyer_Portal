@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { updateProfileApi, getProfileApi } from '../api/auth';
 import { useToast } from '../context/ToastContext';
+import { AgriLoader } from '../components/AgriLoader';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -223,12 +224,7 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
   };
 
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1b4d4f] mb-4"></div>
-        <p className="text-slate-500 text-sm font-medium">Loading profile details...</p>
-      </div>
-    );
+    return <AgriLoader message="Loading profile details..." />;
   }
 
   // ── Nav sections ───────────────────────────────────────────────────────────

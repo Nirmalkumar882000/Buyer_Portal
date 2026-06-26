@@ -117,11 +117,12 @@ export const AuthProvider: React.FC<{
     setSessionSecondsLeft(Math.round(INACTIVITY_TIMEOUT_MS / 1000));
 
     if (inactivityRef.current) clearTimeout(inactivityRef.current);
-
-    inactivityRef.current = setTimeout(() => {
-      logout('inactivity');
-    }, INACTIVITY_TIMEOUT_MS);
-  }, [isAuthenticated, logout]);
+    
+    // Auto-logout timer removed as requested:
+    // inactivityRef.current = setTimeout(() => {
+    //   logout('inactivity');
+    // }, INACTIVITY_TIMEOUT_MS);
+  }, [isAuthenticated]);
 
   // ── Session ticker (per-second countdown) ─────────────────────────────────
 
@@ -133,6 +134,8 @@ export const AuthProvider: React.FC<{
 
     resetActivityTimer();
 
+    // Session countdown ticker is disabled/removed to prevent auto-logout
+    /*
     tickerRef.current = setInterval(() => {
       const idleSince = Date.now() - lastActivityAt;
       const remaining = Math.max(0, Math.round((INACTIVITY_TIMEOUT_MS - idleSince) / 1000));
@@ -141,6 +144,7 @@ export const AuthProvider: React.FC<{
       const shouldWarn = idleSince >= INACTIVITY_WARN_MS && idleSince < INACTIVITY_TIMEOUT_MS;
       setInactivityWarning(shouldWarn);
     }, 1000);
+    */
 
     return () => {
       if (tickerRef.current) clearInterval(tickerRef.current);

@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
 import { getDistrictAgents } from '../api/markets';
+import { AgriLoader } from '../components/AgriLoader';
+import { BackButton } from '../components/BackButton';
 
 interface AgentDiscoveryPageProps {
   onBackToMarkets: () => void;
   onViewAuctions: () => void;
-  onViewProfile: (name: string) => void;
+  onViewProfile: (id: any) => void;
   marketName?: string;
 }
 
@@ -13,8 +16,10 @@ export const AgentDiscoveryPage: React.FC<AgentDiscoveryPageProps> = ({
   onBackToMarkets,
   onViewAuctions,
   onViewProfile,
-  marketName = 'Thoothukudi APMC'
+  marketName: propMarketName
 }) => {
+  const [searchParams] = useSearchParams();
+  const marketName = propMarketName || searchParams.get('district') || 'Thoothukudi';
   const [searchInput, setSearchInput] = useState('');
   const [searchString, setSearchString] = useState('');
   const [selectedProduct, setSelectedProduct] = useState('');
@@ -26,6 +31,13 @@ export const AgentDiscoveryPage: React.FC<AgentDiscoveryPageProps> = ({
   });
 
   const agents = Array.isArray(response) ? response : (response?.data || []);
+
+  const availableCommodities = Array.isArray(response?.all_commodities)
+    ? response.all_commodities
+    : (Array.from(new Set(agents.flatMap((agent: any) => agent.specialties || []))) as string[]).map((comm) => ({
+        id: comm,
+        name: comm
+      }));
 
   const handleSearch = () => {
     setSearchString(searchInput);
@@ -44,16 +56,19 @@ export const AgentDiscoveryPage: React.FC<AgentDiscoveryPageProps> = ({
       </div>
 
       {/* Page Title */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">Mandi Agents — {marketName}</h1>
-        <p className="text-xs text-slate-500 mt-1">
-          {isLoading ? 'Loading agents...' : `${agents.length} registered agents at this market. Register with an agent to access live auctions.`}
-        </p>
+      <div className="flex items-center gap-3">
+        <BackButton onClick={onBackToMarkets} label="Markets" />
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">Mandi Agents — {marketName}</h1>
+          <p className="text-xs text-slate-550 mt-1">
+            {isLoading ? 'Loading agents...' : `${agents.length} registered agents at this market. Register with an agent to access live auctions.`}
+          </p>
+        </div>
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs flex flex-col md:flex-row gap-4">
-        <div className="flex-1">
+      <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs flex flex-col md:flex-row gap-4 items-center">
+        <div className="flex-1 w-full">
           <input
             type="text"
             placeholder="Search agents..."
@@ -70,9 +85,9 @@ export const AgentDiscoveryPage: React.FC<AgentDiscoveryPageProps> = ({
             className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm text-slate-800 outline-hidden transition-all duration-200 focus:border-[#1b4d4f] focus:ring-1 focus:ring-[#1b4d4f]"
           >
             <option value="">All Commodities</option>
-            <option value="Paddy">Paddy</option>
-            <option value="Cotton">Cotton</option>
-            <option value="Onion">Onion</option>
+            {availableCommodities.map((comm: any) => (
+              <option key={comm.id} value={comm.id}>{comm.name}</option>
+            ))}
           </select>
         </div>
         <div className="w-full md:w-48">
@@ -81,12 +96,26 @@ export const AgentDiscoveryPage: React.FC<AgentDiscoveryPageProps> = ({
             <option>Sort: Popularity</option>
           </select>
         </div>
+        {(selectedProduct || searchString || searchInput) && (
+          <button
+            onClick={() => {
+              setSelectedProduct('');
+              setSearchInput('');
+              setSearchString('');
+            }}
+            className="text-xs text-red-600 hover:text-red-750 font-bold transition whitespace-nowrap px-2 py-2"
+          >
+            Clear Filters
+          </button>
+        )}
       </div>
 
       {/* Agent grid cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoading ? (
-          <div className="col-span-full py-10 text-center text-slate-500 font-medium">Loading agents...</div>
+          <div className="col-span-full py-4">
+            <AgriLoader message="Loading agents..." />
+          </div>
         ) : agents.length === 0 ? (
           <div className="col-span-full py-10 text-center text-slate-500 font-medium">No agents found.</div>
         ) : (
@@ -159,13 +188,13 @@ export const AgentDiscoveryPage: React.FC<AgentDiscoveryPageProps> = ({
                 ) : (
                   <div className="grid grid-cols-2 gap-2">
                     <button 
-                      onClick={() => onViewProfile(agent.name)}
+                      onClick={() => onViewProfile(agent.id)}
                       className="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-350 text-xs font-bold py-2 rounded-md transition"
                     >
                       View Profile
                     </button>
                     <button 
-                      onClick={() => onViewProfile(agent.name)}
+                      onClick={() => onViewProfile(agent.id)}
                       className="w-full bg-[#1b4d4f] hover:bg-[#123637] text-white text-xs font-bold py-2 rounded-md transition shadow-xs"
                     >
                       Register

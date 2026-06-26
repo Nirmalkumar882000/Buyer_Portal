@@ -3,6 +3,7 @@ import { useToast } from '../context/ToastContext';
 import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
 import Select from 'react-select';
+import { AgriLoader } from '../components/AgriLoader';
 
 interface PriceRow {
   commodity: string;
@@ -335,8 +336,8 @@ export const MarketPricesPage: React.FC = () => {
 
         <div className="overflow-x-auto relative min-h-[400px] max-h-[600px]">
           {isLoading && (
-            <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-10 backdrop-blur-[1px]">
-              <span className="px-4 py-2 bg-white border border-slate-200 rounded-lg shadow text-slate-600 font-bold">Loading data...</span>
+            <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-10 backdrop-blur-[2px]">
+              <AgriLoader message="Loading market prices..." />
             </div>
           )}
           <table className="w-full text-left border-collapse text-xs">

@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getBuyerNotifications, markNotificationsRead } from '../api/markets';
+import { AgriLoader } from '../components/AgriLoader';
+
 
 interface NotificationItem {
   id: string;
-  type: 'auction' | 'payment' | 'delivery' | 'demand';
+  type: 'auction' | 'payment' | 'delivery' | 'demand' | 'registration';
   title: string;
   description: string;
   time: string;
@@ -95,26 +99,78 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
   onMarkAllReadGlobal,
 }) => {
   const [activeTab, setActiveTab] = useState<'all' | 'auctions' | 'payments' | 'deliveries' | 'demands'>('all');
-  const [notifications, setNotifications] = useState<NotificationItem[]>(initialNotifications);
+  const queryClient = useQueryClient();
+
+  const { data: dbNotifications = [], isLoading } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: getBuyerNotifications,
+  });
+
+  const markAllReadMutation = useMutation({
+    mutationFn: markNotificationsRead,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      if (onMarkAllReadGlobal) onMarkAllReadGlobal();
+    }
+  });
 
   const handleMarkAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false, borderColorClass: undefined })));
-    if (onMarkAllReadGlobal) onMarkAllReadGlobal();
+    markAllReadMutation.mutate();
   };
 
   const handleNotificationClick = (n: NotificationItem) => {
-    // Mark as read
-    setNotifications((prev) =>
-      prev.map((item) => (item.id === n.id ? { ...item, unread: false, borderColorClass: undefined } : item))
-    );
     // Navigate
     onNavigate(n.targetView, n.targetParams);
   };
 
-  // Calculations for badges
-  const auctionsUnread = notifications.filter((n) => n.type === 'auction' && n.unread).length;
+  const TYPE_CONFIG = {
+    auction: { icon: '🏆', bg: 'bg-amber-50 border border-amber-100', border: 'border-l-4 border-emerald-500' },
+    payment: { icon: '💰', bg: 'bg-yellow-50 border border-yellow-100', border: 'border-l-4 border-yellow-500' },
+    delivery: { icon: '🚚', bg: 'bg-cyan-50 border border-cyan-100', border: 'border-l-4 border-cyan-500' },
+    demand: { icon: '📋', bg: 'bg-blue-50 border border-blue-100', border: 'border-l-4 border-blue-500' },
+    registration: { icon: '✅', bg: 'bg-emerald-50 border border-emerald-100', border: 'border-l-4 border-emerald-500' },
+  };
 
-  const filtered = notifications.filter((n) => {
+  const timeAgo = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins} mins ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+  };
+
+  const notificationsArray = Array.isArray(dbNotifications) 
+    ? dbNotifications 
+    : (Array.isArray(dbNotifications?.data) ? dbNotifications.data : []);
+
+  const mappedNotifications: NotificationItem[] = notificationsArray.map((n: any) => {
+    const config = TYPE_CONFIG[n.type as keyof typeof TYPE_CONFIG] || TYPE_CONFIG.registration;
+    return {
+      id: String(n.id),
+      type: n.type,
+      title: n.title,
+      description: n.description,
+      time: timeAgo(n.created_at),
+      unread: Boolean(n.unread),
+      icon: config.icon,
+      iconBg: config.bg,
+      borderColorClass: n.unread ? config.border : undefined,
+      targetView: n.target_view || 'my-agents',
+      targetParams: n.target_params ? JSON.parse(n.target_params) : undefined
+    };
+  });
+
+  const notificationsToShow = mappedNotifications.length > 0 ? mappedNotifications : initialNotifications;
+
+  // Calculations for badges
+  const auctionsUnread = notificationsToShow.filter((n) => n.type === 'auction' && n.unread).length;
+
+  const filtered = notificationsToShow.filter((n) => {
     if (activeTab === 'all') return true;
     if (activeTab === 'auctions') return n.type === 'auction';
     if (activeTab === 'payments') return n.type === 'payment';
@@ -157,7 +213,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
             activeTab === 'all' ? 'text-[#1b4d4f] font-extrabold border-b-2 border-[#1b4d4f]' : 'hover:text-slate-800'
           }`}
         >
-          All ({notifications.length})
+          All ({notificationsToShow.length})
         </button>
 
         <button
@@ -200,35 +256,40 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
         </button>
       </div>
 
-      {/* Notifications List Stack */}
       <div className="space-y-4">
-        {filtered.map((n) => (
-          <div
-            key={n.id}
-            onClick={() => handleNotificationClick(n)}
-            className={`bg-white border border-slate-200 rounded-lg p-4 shadow-2xs transition-all duration-200 hover:border-slate-350 cursor-pointer relative flex gap-4 items-start
-              ${n.unread ? n.borderColorClass || 'border-l-4 border-emerald-500' : 'opacity-80'}`}
-          >
-            {/* Round Icon */}
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${n.iconBg} shrink-0`}>
-              {n.icon}
-            </div>
+        {isLoading ? (
+          <AgriLoader message="Loading notifications..." />
+        ) : filtered.length === 0 ? (
+          <div className="p-8 text-center text-slate-400 font-medium">No notifications.</div>
+        ) : (
+          filtered.map((n) => (
+            <div
+              key={n.id}
+              onClick={() => handleNotificationClick(n)}
+              className={`bg-white border border-slate-200 rounded-lg p-4 shadow-2xs transition-all duration-200 hover:border-slate-350 cursor-pointer relative flex gap-4 items-start
+                ${n.unread ? n.borderColorClass || 'border-l-4 border-emerald-500' : 'opacity-80'}`}
+            >
+              {/* Round Icon */}
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${n.iconBg} shrink-0`}>
+                {n.icon}
+              </div>
 
-            {/* Content info */}
-            <div className="flex-1 space-y-0.5 text-xs font-semibold">
-              <h3 className={`text-slate-800 font-extrabold ${n.unread ? 'text-[13px]' : 'text-xs'}`}>
-                {n.title}
-              </h3>
-              <p className="text-slate-500 font-medium leading-normal">{n.description}</p>
-              <span className="text-[10px] text-slate-400 font-bold block pt-1">{n.time}</span>
-            </div>
+              {/* Content info */}
+              <div className="flex-1 space-y-0.5 text-xs font-semibold">
+                <h3 className={`text-slate-800 font-extrabold ${n.unread ? 'text-[13px]' : 'text-xs'}`}>
+                  {n.title}
+                </h3>
+                <p className="text-slate-500 font-medium leading-normal">{n.description}</p>
+                <span className="text-[10px] text-slate-400 font-bold block pt-1">{n.time}</span>
+              </div>
 
-            {/* Blue Dot Indicator for Unread */}
-            {n.unread && (
-              <span className="absolute top-4 right-4 w-2.5 h-2.5 rounded-full bg-cyan-600" />
-            )}
-          </div>
-        ))}
+              {/* Blue Dot Indicator for Unread */}
+              {n.unread && (
+                <span className="absolute top-4 right-4 w-2.5 h-2.5 rounded-full bg-cyan-600" />
+              )}
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
