@@ -1,6 +1,8 @@
 import React from 'react';
 import { Button } from '../components/Button';
 import { Gavel, Truck, TrendingUp, Users, ShoppingBag, Tractor, Store, Search, MessageCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { useLivePrices } from '../hooks/useLivePrices';
 
 interface DashboardPageProps {
   formData: any;
@@ -9,11 +11,15 @@ interface DashboardPageProps {
 }
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({ formData, onLogout, onActionClick }) => {
+  const { t } = useTranslation();
+
   const recentPurchases = [
     { product: 'Paddy (Grade A)', qty: '5 MT', amount: '₹94,860', status: 'Delivered', statusColor: 'bg-emerald-100 text-emerald-800' },
     { product: 'Groundnut', qty: '500 kg', amount: '₹26,000', status: 'In Transit', statusColor: 'bg-amber-100 text-amber-800' },
     { product: 'Onion (Large)', qty: '1 MT', amount: '₹19,200', status: 'Processing', statusColor: 'bg-blue-100 text-blue-800' },
   ];
+  
+  const { prices: livePrices } = useLivePrices();
 
   const notifications = [
     { text: 'Auction Win! Paddy Lot #A-2294 — ₹94,860', time: '2 mins ago', dotColor: 'bg-slate-600' },
@@ -30,12 +36,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ formData, onLogout
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-            Good morning, {formData.fullName || 'Ravi Kumar'} <span className="animate-bounce">👋</span>
+            {t('good_morning', 'Good morning')}, {formData.fullName || 'Ravi Kumar'} <span className="animate-bounce">👋</span>
           </h1>
           <p className="text-xs text-slate-400 mt-1">Tuesday, 15 July 2025 | buyer.velaanbay.in</p>
         </div>
         <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-md text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-xs">
-          <span>🔔 Notifications</span>
+          <span>🔔 {t('notifications', 'Notifications')}</span>
           <span className="w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] font-bold">3</span>
         </button>
       </div>
@@ -76,9 +82,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ formData, onLogout
               <Gavel className="w-4 h-4" />
             </div>
           </div>
-          <span className="text-[9px] font-bold text-slate-700 tracking-wider uppercase">Active Bids</span>
+          <span className="text-[9px] font-bold text-slate-700 tracking-wider uppercase">{t('active_bids', 'Active Bids')}</span>
           <div className="text-2xl font-black text-black my-0.5">3</div>
-          <div className="text-xs text-slate-500 mb-3">2 live auctions now</div>
+          <div className="text-xs text-slate-500 mb-3">{t('live_auctions_now', '2 live auctions now')}</div>
           <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
             <div className="bg-[#1b4d4f] group-hover:bg-[#57c7c0] transition-colors h-full w-2/3"></div>
           </div>
@@ -92,9 +98,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ formData, onLogout
               <Truck className="w-4 h-4" />
             </div>
           </div>
-          <span className="text-[9px] font-bold text-slate-700 tracking-wider uppercase">Pending Deliveries</span>
+          <span className="text-[9px] font-bold text-slate-700 tracking-wider uppercase">{t('pending_deliveries', 'Pending Deliveries')}</span>
           <div className="text-2xl font-black text-black my-0.5">2</div>
-          <div className="text-xs text-slate-500 mb-3">Expected today: 1</div>
+          <div className="text-xs text-slate-500 mb-3">{t('expected_today', 'Expected today: 1')}</div>
           <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
             <div className="bg-[#1b4d4f] group-hover:bg-[#57c7c0] transition-colors h-full w-1/2"></div>
           </div>
@@ -108,9 +114,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ formData, onLogout
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
-          <span className="text-[9px] font-bold text-slate-700 tracking-wider uppercase">This Month Purchases</span>
+          <span className="text-[9px] font-bold text-slate-700 tracking-wider uppercase">{t('this_month_purchases', 'This Month Purchases')}</span>
           <div className="text-2xl font-black text-black my-0.5">₹1.2L</div>
-          <div className="text-xs text-emerald-600 font-medium mb-3">↑ 18% vs last month</div>
+          <div className="text-xs text-emerald-600 font-medium mb-3">↑ 18% {t('vs_last_month', 'vs last month')}</div>
           <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
             <div className="bg-[#1b4d4f] group-hover:bg-[#57c7c0] transition-colors h-full w-3/4"></div>
           </div>
@@ -124,9 +130,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ formData, onLogout
               <Users className="w-4 h-4" />
             </div>
           </div>
-          <span className="text-[9px] font-bold text-slate-700 tracking-wider uppercase">Registered Agents</span>
+          <span className="text-[9px] font-bold text-slate-700 tracking-wider uppercase">{t('registered_agents', 'Registered Agents')}</span>
           <div className="text-2xl font-black text-black my-0.5">4</div>
-          <div className="text-xs text-slate-500 mb-3">3 approved, 1 pending</div>
+          <div className="text-xs text-slate-500 mb-3">{t('approved_pending', '3 approved, 1 pending')}</div>
           <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
             <div className="bg-[#1b4d4f] group-hover:bg-[#57c7c0] transition-colors h-full w-4/5"></div>
           </div>
@@ -135,14 +141,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ formData, onLogout
 
       {/* Quick Actions */}
       <div className="bg-white border border-slate-100 rounded-xl p-6 shadow-sm space-y-5">
-        <h3 className="text-sm font-extrabold text-slate-800">Quick Actions</h3>
+        <h3 className="text-sm font-extrabold text-slate-800">{t('quick_actions', 'Quick Actions')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           <button
             onClick={() => onActionClick('auctions-list')}
             className="flex flex-col items-center justify-center gap-3 p-4 bg-slate-50 border border-slate-100 rounded-xl hover:border-[#1b4d4f] hover:bg-[#e2f2f1] hover:shadow-md transition-all group"
           >
             <ShoppingBag className="w-6 h-6 text-[#1b4d4f] group-hover:-translate-y-1 transition-transform" />
-            <span className="text-xs font-bold text-slate-700 group-hover:text-[#1b4d4f]">Browse Auctions</span>
+            <span className="text-xs font-bold text-slate-700 group-hover:text-[#1b4d4f]">{t('browse_auctions', 'Browse Auctions')}</span>
           </button>
 
           {/* Post Demand & Top Up Wallet - UNDER DEVELOPMENT (Hidden) */}
@@ -162,7 +168,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ formData, onLogout
             className="flex flex-col items-center justify-center gap-3 p-4 bg-slate-50 border border-slate-100 rounded-xl hover:border-[#1b4d4f] hover:bg-[#e2f2f1] hover:shadow-md transition-all group"
           >
             <Store className="w-6 h-6 text-[#1b4d4f] group-hover:-translate-y-1 transition-transform" />
-            <span className="text-xs font-bold text-slate-700 group-hover:text-[#1b4d4f]">Fixed Market</span>
+            <span className="text-xs font-bold text-slate-700 group-hover:text-[#1b4d4f]">{t('fixed_market', 'Fixed Market')}</span>
           </button>
 
           <button
@@ -170,7 +176,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ formData, onLogout
             className="flex flex-col items-center justify-center gap-3 p-4 bg-slate-50 border border-slate-100 rounded-xl hover:border-[#1b4d4f] hover:bg-[#e2f2f1] hover:shadow-md transition-all group"
           >
             <Search className="w-6 h-6 text-[#1b4d4f] group-hover:-translate-y-1 transition-transform" />
-            <span className="text-xs font-bold text-slate-700 group-hover:text-[#1b4d4f]">Find Agents</span>
+            <span className="text-xs font-bold text-slate-700 group-hover:text-[#1b4d4f]">{t('find_agents', 'Find Agents')}</span>
           </button>
 
           <button
@@ -178,7 +184,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ formData, onLogout
             className="flex flex-col items-center justify-center gap-3 p-4 bg-[#25d366]/10 border border-[#25d366]/20 rounded-xl hover:border-[#25d366] hover:bg-[#25d366]/20 hover:shadow-md transition-all group"
           >
             <MessageCircle className="w-6 h-6 text-[#25d366] group-hover:-translate-y-1 transition-transform" />
-            <span className="text-xs font-bold text-[#1a8a43] group-hover:text-[#136630]">WhatsApp Chat</span>
+            <span className="text-xs font-bold text-[#1a8a43] group-hover:text-[#136630]">{t('whatsapp_chat', 'WhatsApp Chat')}</span>
           </button>
         </div>
       </div>
@@ -186,11 +192,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ formData, onLogout
       {/* Live price ticker strip */}
       <div className="flex items-center bg-[#1b4d4f] text-white rounded-lg p-3 overflow-hidden shadow-xs">
         <div className="bg-white text-[#1b4d4f] text-[10px] font-bold px-2 py-0.5 rounded-sm mr-4 shrink-0">
-          LIVE PRICES
+          {t('live_prices_marquee', 'LIVE PRICES')}
         </div>
         <div className="flex-1 overflow-hidden">
           <Marquee className="text-xs font-medium text-slate-200" scrollamount="3">
-            Paddy: ₹1,840/q ▲ 2.1% &nbsp;&nbsp;|&nbsp;&nbsp; Onion: ₹2,200/q ▼ 1.5% &nbsp;&nbsp;|&nbsp;&nbsp; Tomato: ₹1,100/q ▲ 0.8% &nbsp;&nbsp;|&nbsp;&nbsp; Groundnut: ₹5,200/q ▲ 3.2% &nbsp;&nbsp;|&nbsp;&nbsp; Cotton: ₹6,400/q ▼ 0.5% &nbsp;&nbsp;|&nbsp;&nbsp; Wheat: ₹2,150/q ▲ 1.0%
+            {livePrices.map((item, idx) => (
+              <span key={idx} className="mr-8">
+                <strong className="text-white">{item.name}:</strong> {item.price} &nbsp;&nbsp;|&nbsp;&nbsp;
+              </span>
+            ))}
           </Marquee>
         </div>
       </div>
@@ -200,19 +210,19 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ formData, onLogout
         {/* Recent Purchases */}
         <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-sm font-bold text-slate-800">Recent Purchases</h3>
+            <h3 className="text-sm font-bold text-slate-800">{t('recent_purchases', 'Recent Purchases')}</h3>
             <button className="text-xs font-bold text-[#1b4d4f] border border-[#1b4d4f] px-3 py-1 rounded-md hover:bg-teal-50 transition">
-              View All
+              {t('view_all', 'View All')}
             </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="border-b border-slate-100 text-slate-400 font-semibold">
-                  <th className="py-2.5">Product</th>
-                  <th className="py-2.5">Qty</th>
-                  <th className="py-2.5">Amount</th>
-                  <th className="py-2.5">Status</th>
+                  <th className="py-2.5">{t('table_product', 'Product')}</th>
+                  <th className="py-2.5">{t('table_qty', 'Qty')}</th>
+                  <th className="py-2.5">{t('table_amount', 'Amount')}</th>
+                  <th className="py-2.5">{t('table_status', 'Status')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
@@ -236,7 +246,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ formData, onLogout
         {/* Notifications */}
         <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-sm font-bold text-slate-800">Notifications</h3>
+            <h3 className="text-sm font-bold text-slate-800">{t('notifications', 'Notifications')}</h3>
             <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">3 new</span>
           </div>
           <div className="space-y-4">

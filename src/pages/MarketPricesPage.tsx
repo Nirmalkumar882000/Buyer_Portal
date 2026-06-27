@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
 import Select from 'react-select';
 import { AgriLoader } from '../components/AgriLoader';
+import { useTranslation } from 'react-i18next';
 
 interface PriceRow {
   commodity: string;
@@ -18,8 +19,8 @@ interface PriceRow {
 
 export const MarketPricesPage: React.FC = () => {
   const { showToast } = useToast();
-  
-  const todayDate = '2026-06-17';
+  const { t } = useTranslation();
+  const todayDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
 
   // Temp State (Unapplied filters)
   const [tempDate, setTempDate] = useState<string>(todayDate);
@@ -43,7 +44,8 @@ export const MarketPricesPage: React.FC = () => {
   const { data: filterData } = useQuery({
     queryKey: ['market-filters', tempDate],
     queryFn: async () => {
-      const params = new URLSearchParams({ lan: 'en' });
+      const currentLang = localStorage.getItem('buyer_language') || 'en';
+      const params = new URLSearchParams({ lan: currentLang });
       if (tempDate) params.append('price_date', tempDate);
       const res = await axios.get(`http://localhost:6200/marketPrice/market-price-v2?${params.toString()}`);
       return res.data.data || [];
@@ -54,7 +56,8 @@ export const MarketPricesPage: React.FC = () => {
   const { data: pricesResponse, isLoading } = useQuery({
     queryKey: ['market-prices', appliedFilters],
     queryFn: async () => {
-      const params = new URLSearchParams({ lan: 'en' });
+      const currentLang = localStorage.getItem('buyer_language') || 'en';
+      const params = new URLSearchParams({ lan: currentLang });
       if (appliedFilters.date) params.append('price_date', appliedFilters.date);
       if (appliedFilters.district?.value) params.append('district_id', appliedFilters.district.value);
       if (appliedFilters.market?.value) params.append('market_id', appliedFilters.market.value);
@@ -155,13 +158,22 @@ export const MarketPricesPage: React.FC = () => {
 
   const handleDownloadCSV = () => {
     if (processedData.flatPrices.length === 0) {
-      showToast("No data available to download.", "error");
+      showToast(t('msg_no_data_download', "No data available to download."), "error");
       return;
     }
 
     setDownloading(true);
-    showToast("Downloading today's prices CSV...", 'info');
-    const headers = ['District', 'Market', 'Commodity', 'Variety', 'Price', 'Unit', 'Date', 'Last Updated'];
+    showToast(t('msg_downloading_csv', "Downloading today's prices CSV..."), 'info');
+    const headers = [
+      t('table_district', 'District'), 
+      t('table_market', 'Market'), 
+      t('table_commodity', 'Commodity'), 
+      t('table_variety', 'Variety'), 
+      t('table_price', 'Price'), 
+      t('table_unit', 'Unit'), 
+      t('filter_date', 'Date'), 
+      t('table_last_updated', 'Last Updated')
+    ];
     const csvContent = [
       headers.join(','),
       ...processedData.flatPrices.map(item => 
@@ -178,7 +190,7 @@ export const MarketPricesPage: React.FC = () => {
     link.click();
     document.body.removeChild(link);
     setDownloading(false);
-    showToast("Download complete!", 'success');
+    showToast(t('msg_download_complete', "Download complete!"), 'success');
   };
 
   const customSelectStyles = {
@@ -221,19 +233,19 @@ export const MarketPricesPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
         <div>
           <div className="text-xs text-slate-400 font-semibold mb-1">
-            <span className="text-slate-450">Home</span>
+            <span className="text-slate-450">{t('nav_home', 'Home')}</span>
             <span className="mx-1.5">&rsaquo;</span>
-            <span className="text-slate-500 font-semibold">Market Prices</span>
+            <span className="text-slate-500 font-semibold">{t('nav_market_prices', 'Market Prices')}</span>
           </div>
-          <h1 className="text-2xl font-black text-slate-800 tracking-tight">Market Price List</h1>
+          <h1 className="text-2xl font-black text-slate-800 tracking-tight">{t('title_market_price_list', 'Market Price List')}</h1>
           <p className="text-xs text-slate-500 font-bold mt-0.5">
-            Daily commodity prices across Indian APMC markets. Updated by Velaan Bay back office.
+            {t('desc_market_price_list', 'Daily commodity prices across Indian APMC markets. Updated by Velaan Bay back office.')}
           </p>
         </div>
 
         <div className="self-start sm:self-center">
           <span className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 text-white text-[11px] font-black rounded-md shadow-xs uppercase tracking-wider">
-            ✓ No Login Required
+            ✓ {t('badge_no_login_required', 'No Login Required')}
           </span>
         </div>
       </div>
@@ -241,8 +253,8 @@ export const MarketPricesPage: React.FC = () => {
       <div className="bg-blue-50/50 border border-blue-100 rounded-lg p-3.5 flex gap-2.5 items-center">
         <span className="text-blue-500 text-lg">📢</span>
         <p className="text-xs text-blue-800 font-semibold">
-          Prices are updated daily by the Velaan Bay back office. Last updated:{' '}
-          <span className="text-[#1b4d4f] font-black">{processedData.latestUpdate || 'Loading...'}</span>
+          {t('alert_prices_updated', 'Prices are updated daily by the Velaan Bay back office. Last updated:')}{' '}
+          <span className="text-[#1b4d4f] font-black">{processedData.latestUpdate || t('loading', 'Loading...')}</span>
         </p>
       </div>
 
@@ -250,7 +262,7 @@ export const MarketPricesPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
             
             <div className="lg:col-span-1">
-               <label className="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1.5">Date</label>
+               <label className="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1.5">{t('filter_date', 'Date')}</label>
                <input
                  type="date"
                  value={tempDate}
@@ -260,7 +272,7 @@ export const MarketPricesPage: React.FC = () => {
             </div>
 
             <div className="lg:col-span-1">
-               <label className="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1.5">District</label>
+               <label className="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1.5">{t('filter_district', 'District')}</label>
                <Select 
                  isClearable
                  options={filterOptions.districts}
@@ -272,7 +284,7 @@ export const MarketPricesPage: React.FC = () => {
             </div>
 
             <div className="lg:col-span-1">
-               <label className="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1.5">Market</label>
+               <label className="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1.5">{t('filter_market', 'Market')}</label>
                <Select 
                  isClearable
                  options={filterOptions.displayMarkets}
@@ -284,7 +296,7 @@ export const MarketPricesPage: React.FC = () => {
             </div>
 
             <div className="lg:col-span-1">
-               <label className="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1.5">Commodity</label>
+               <label className="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1.5">{t('filter_commodity', 'Commodity')}</label>
                <Select 
                  isClearable
                  options={filterOptions.commodities}
@@ -296,7 +308,7 @@ export const MarketPricesPage: React.FC = () => {
             </div>
 
             <div className="lg:col-span-1">
-               <label className="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1.5">Variety</label>
+               <label className="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1.5">{t('filter_variety', 'Variety')}</label>
                <Select 
                  isClearable
                  options={filterOptions.varieties}
@@ -312,7 +324,7 @@ export const MarketPricesPage: React.FC = () => {
                 onClick={handleApplyFilter}
                 className="flex-1 h-[42px] bg-[#1b4d4f] hover:bg-[#123637] text-white text-[13px] font-bold rounded-md shadow-xs transition cursor-pointer flex items-center justify-center gap-1.5"
               >
-                ⚙ Filter
+                ⚙ {t('btn_filter', 'Filter')}
               </button>
             </div>
         </div>
@@ -323,15 +335,15 @@ export const MarketPricesPage: React.FC = () => {
               disabled={downloading}
               className="px-4 py-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-[13px] font-bold rounded-md shadow-2xs flex items-center gap-2 transition cursor-pointer"
             >
-              {downloading ? '⏳ Preparing...' : '📊 Download Today\'s Prices'}
+              {downloading ? `⏳ ${t('btn_preparing', 'Preparing...')}` : `📊 ${t('btn_download_prices', "Download Today's Prices")}`}
             </button>
         </div>
       </div>
 
       <div className="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
         <div className="bg-slate-50 border-b border-slate-200 px-5 py-3.5 flex justify-between items-center text-xs font-bold">
-          <span className="text-slate-800 font-extrabold">{processedData.selectedDate ? `Date — ${processedData.selectedDate}` : 'Select a date'}</span>
-          <span className="text-slate-400 font-semibold text-[10px]">Prices in appropriate unit</span>
+          <span className="text-slate-800 font-extrabold">{processedData.selectedDate ? `${t('filter_date', 'Date')} — ${processedData.selectedDate}` : t('text_select_date', 'Select a date')}</span>
+          <span className="text-slate-400 font-semibold text-[10px]">{t('text_prices_unit', 'Prices in appropriate unit')}</span>
         </div>
 
         <div className="overflow-x-auto relative min-h-[400px] max-h-[600px]">
@@ -343,13 +355,13 @@ export const MarketPricesPage: React.FC = () => {
           <table className="w-full text-left border-collapse text-xs">
             <thead className="sticky top-0 z-20 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
               <tr className="text-slate-500 font-bold border-b border-slate-200 uppercase tracking-wider text-[10px]">
-                <th className="p-4">District</th>
-                <th className="p-4">Market</th>
-                <th className="p-4">Commodity</th>
-                <th className="p-4">Variety</th>
-                <th className="p-4">Price</th>
-                <th className="p-4">Unit</th>
-                <th className="p-4">Last Updated</th>
+                <th className="p-4">{t('table_district', 'District')}</th>
+                <th className="p-4">{t('table_market', 'Market')}</th>
+                <th className="p-4">{t('table_commodity', 'Commodity')}</th>
+                <th className="p-4">{t('table_variety', 'Variety')}</th>
+                <th className="p-4">{t('table_price', 'Price')}</th>
+                <th className="p-4">{t('table_unit', 'Unit')}</th>
+                <th className="p-4">{t('table_last_updated', 'Last Updated')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
@@ -365,7 +377,7 @@ export const MarketPricesPage: React.FC = () => {
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan={7} className="p-12 text-center text-slate-500 font-semibold text-sm">No prices found for the selected filters.</td>
+                  <td colSpan={7} className="p-12 text-center text-slate-500 font-semibold text-sm">{t('msg_no_prices', 'No prices found for the selected filters.')}</td>
                 </tr>
               )}
             </tbody>
@@ -374,7 +386,7 @@ export const MarketPricesPage: React.FC = () => {
       </div>
 
       <div className="text-[10px] text-slate-400 font-bold leading-relaxed">
-        Disclaimer: Prices are indicative and sourced from APMC market data. Actual transaction prices may vary. Maintained by Skandavel Webtech Private Limited.
+        {t('disclaimer_market_prices', 'Disclaimer: Prices are indicative and sourced from APMC market data. Actual transaction prices may vary. Maintained by Skandavel Webtech Private Limited.')}
       </div>
     </div>
   );

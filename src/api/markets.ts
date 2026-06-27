@@ -108,3 +108,27 @@ export const setBuyerReminder = async (lotId: number | string) => {
   return data;
 };
 
+export const placeBuyerBid = async (params: {
+  lot_id: number;
+  buyer_id: number;
+  buyer_name: string;
+  buyer_mobile_number: string;
+  bid_amount: number;
+}) => {
+  const { data } = await api.post('/bidding/place', params);
+  return data;
+};
+
+export const getBidsList = async (lotId: number | string) => {
+  const { data } = await api.get('/bidding/list', { params: { lot_id: lotId } });
+  return data?.data?.data || data?.data || [];
+};
+
+export const getBuyerWallet = async () => {
+  try {
+    const { data } = await api.get('/buyer/wallet');
+    return data?.data || { available: 0, on_hold: 0 };
+  } catch {
+    return { available: 0, on_hold: 0 };
+  }
+};

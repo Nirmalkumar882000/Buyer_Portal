@@ -1,5 +1,7 @@
 import React from 'react';
 import { ParticlesBackground } from '../components/ParticlesBackground';
+import { useTranslation } from 'react-i18next';
+import { useLivePrices } from '../hooks/useLivePrices';
 
 interface LandingPageProps {
   onRegisterClick: () => void;
@@ -7,14 +9,8 @@ interface LandingPageProps {
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onRegisterClick, onLoginClick }) => {
-  const commodities = [
-    { name: 'Paddy', price: '₹1,840/q' },
-    { name: 'Onion', price: '₹2,200/q' },
-    { name: 'Tomato', price: '₹1,100/q' },
-    { name: 'Groundnut', price: '₹5,200/q' },
-    { name: 'Cotton', price: '₹6,400/q' },
-    { name: 'Wheat', price: '₹2,150/q' }
-  ];
+  const { t } = useTranslation();
+  const { prices: commodities } = useLivePrices();
 
   const Marquee = 'marquee' as any;
 
@@ -27,17 +23,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onRegisterClick, onLog
           VelaanBay <span className="text-slate-300 font-normal text-sm ml-1.5 hidden sm:inline">Buyer Portal</span>
         </div>
         <div className="hidden lg:flex items-center gap-7">
-          <a href="#markets" className="text-sm font-medium text-slate-200 hover:text-white transition">Markets</a>
-          <a href="#prices" className="text-sm font-medium text-slate-200 hover:text-white transition">Market Prices</a>
-          <a href="#how-it-works" className="text-sm font-medium text-slate-200 hover:text-white transition">How It Works</a>
-          <a href="#about" className="text-sm font-medium text-slate-200 hover:text-white transition">About</a>
+          <a href="#markets" className="text-sm font-medium text-slate-200 hover:text-white transition">{t('nav_markets', 'Markets')}</a>
+          <a href="#prices" className="text-sm font-medium text-slate-200 hover:text-white transition">{t('nav_market_prices', 'Market Prices')}</a>
+          <a href="#how-it-works" className="text-sm font-medium text-slate-200 hover:text-white transition">{t('nav_how_it_works', 'How It Works')}</a>
+          <a href="#about" className="text-sm font-medium text-slate-200 hover:text-white transition">{t('nav_about', 'About')}</a>
         </div>
         <div className="flex items-center gap-4">
           <button onClick={onLoginClick} className="text-sm font-semibold text-white bg-transparent border border-white px-5 py-2 rounded-md hover:bg-white/10 transition">
-            Login
+            {t('nav_login', 'Login')}
           </button>
           <button onClick={onRegisterClick} className="text-sm font-semibold text-[#1b4d4f] bg-white border border-transparent px-5 py-2 rounded-md hover:bg-slate-100 transition">
-            Register Free
+            {t('nav_register_free', 'Register Free')}
           </button>
         </div>
       </nav>
@@ -49,22 +45,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onRegisterClick, onLog
           {/* Left Side Info */}
           <div className="flex-1 space-y-6">
             <h1 className="text-4xl md:text-5xl font-extrabold leading-tight text-white">
-              Buy Fresh. Buy Direct.<br />
-              <span className="text-[#a7f3d0]">Buy Smart.</span>
+              {t('hero_title_1', 'Buy Fresh. Buy Direct.')}<br />
+              <span className="text-[#a7f3d0]">{t('hero_title_2', 'Buy Smart.')}</span>
             </h1>
             <p className="text-slate-200 leading-relaxed text-base max-w-lg">
-              Access live APMC auctions, fixed-price listings, and farmer demand boards — all in one free platform for agricultural buyers across India.
+              {t('hero_subtitle', 'Access live APMC auctions, fixed-price listings, and farmer demand boards — all in one free platform for agricultural buyers across India.')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 pt-2">
               <button onClick={onRegisterClick} className="px-7 py-4 text-base font-semibold text-[#1b4d4f] bg-white rounded-lg shadow-lg hover:bg-slate-100 transition text-center">
-                Register Free — It's 100% Free
+                {t('btn_register_free', 'Register Free — It\'s 100% Free')}
               </button>
               <button onClick={onRegisterClick} className="px-7 py-4 text-base font-semibold text-white bg-transparent border border-white/40 rounded-lg hover:bg-white/10 transition text-center">
-                Browse Market Prices
+                {t('btn_browse_prices', 'Browse Market Prices')}
               </button>
             </div>
             <p className="text-xs text-slate-400">
-              No subscription. No licence fee. Free forever for buyers.
+              {t('hero_disclaimer', 'No subscription. No licence fee. Free forever for buyers.')}
             </p>
           </div>
 
@@ -83,19 +79,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onRegisterClick, onLog
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-white/5 p-4 rounded-lg border border-white/5">
                     <div className="text-xl font-bold text-white">₹24,500</div>
-                    <div className="text-xs text-slate-400 mt-1">Wallet Balance</div>
+                    <div className="text-xs text-slate-400 mt-1">{t('mock_wallet_balance', 'Wallet Balance')}</div>
                   </div>
                   <div className="bg-white/5 p-4 rounded-lg border border-white/5">
                     <div className="text-xl font-bold text-white">3</div>
-                    <div className="text-xs text-slate-400 mt-1">Active Bids</div>
+                    <div className="text-xs text-slate-400 mt-1">{t('mock_active_bids', 'Active Bids')}</div>
                   </div>
                   <div className="bg-white/5 p-4 rounded-lg border border-white/5">
                     <div className="text-xl font-bold text-white">12</div>
-                    <div className="text-xs text-slate-400 mt-1">Live Auctions</div>
+                    <div className="text-xs text-slate-400 mt-1">{t('mock_live_auctions', 'Live Auctions')}</div>
                   </div>
                   <div className="bg-white/5 p-4 rounded-lg border border-white/5">
-                    <div className="text-xl font-bold text-red-400">LIVE</div>
-                    <div className="text-xs text-red-400/80 mt-1">Paddy Lot</div>
+                    <div className="text-xl font-bold text-red-400">{t('mock_live', 'LIVE')}</div>
+                    <div className="text-xs text-red-400/80 mt-1">{t('mock_paddy_lot', 'Paddy Lot')}</div>
                   </div>
                 </div>
               </div>
@@ -123,33 +119,33 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onRegisterClick, onLog
       {/* Everything a Buyer Needs Feature Grid */}
       <section className="py-20 px-6 bg-slate-50 text-center" id="how-it-works">
         <div className="max-w-5xl mx-auto space-y-3 mb-12">
-          <h2 className="text-3xl font-extrabold text-[#1e3a3a] tracking-tight">Everything a Buyer Needs</h2>
-          <p className="text-sm text-slate-500 max-w-md mx-auto">One platform. All agricultural markets. Zero fees.</p>
+          <h2 className="text-3xl font-extrabold text-[#1e3a3a] tracking-tight">{t('features_title', 'Everything a Buyer Needs')}</h2>
+          <p className="text-sm text-slate-500 max-w-md mx-auto">{t('features_subtitle', 'One platform. All agricultural markets. Zero fees.')}</p>
         </div>
 
         <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-md transition text-center space-y-4">
             <div className="w-12 h-12 bg-emerald-50 rounded-lg flex items-center justify-center text-xl mx-auto">💼</div>
-            <h3 className="text-base font-semibold text-[#1b4d4f]">Live APMC Auctions</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">Bid in real-time auctions from verified mandi agents.</p>
+            <h3 className="text-base font-semibold text-[#1b4d4f]">{t('feat_1_title', 'Live APMC Auctions')}</h3>
+            <p className="text-xs text-slate-500 leading-relaxed">{t('feat_1_desc', 'Bid in real-time auctions from verified mandi agents.')}</p>
           </div>
 
           <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-md transition text-center space-y-4">
             <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center text-xl mx-auto">🛒</div>
-            <h3 className="text-base font-semibold text-[#1b4d4f]">Fixed Price Listings</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">Browse and buy agricultural produce directly.</p>
+            <h3 className="text-base font-semibold text-[#1b4d4f]">{t('feat_2_title', 'Fixed Price Listings')}</h3>
+            <p className="text-xs text-slate-500 leading-relaxed">{t('feat_2_desc', 'Browse and buy agricultural produce directly.')}</p>
           </div>
 
           <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-md transition text-center space-y-4">
             <div className="w-12 h-12 bg-orange-50 rounded-lg flex items-center justify-center text-xl mx-auto">📋</div>
-            <h3 className="text-base font-semibold text-[#1b4d4f]">Demand Board</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">Post your requirements and get competitive quotes.</p>
+            <h3 className="text-base font-semibold text-[#1b4d4f]">{t('feat_3_title', 'Demand Board')}</h3>
+            <p className="text-xs text-slate-500 leading-relaxed">{t('feat_3_desc', 'Post your requirements and get competitive quotes.')}</p>
           </div>
 
           <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-md transition text-center space-y-4">
             <div className="w-12 h-12 bg-red-50 rounded-lg flex items-center justify-center text-xl mx-auto">🚚</div>
-            <h3 className="text-base font-semibold text-[#1b4d4f]">Velaan Cargo Transport</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">Book shared or fixed hire vehicles for delivery.</p>
+            <h3 className="text-base font-semibold text-[#1b4d4f]">{t('feat_4_title', 'Velaan Cargo Transport')}</h3>
+            <p className="text-xs text-slate-500 leading-relaxed">{t('feat_4_desc', 'Book shared or fixed hire vehicles for delivery.')}</p>
           </div>
         </div>
       </section>
@@ -159,19 +155,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onRegisterClick, onLog
         <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           <div className="space-y-1">
             <div className="text-3xl font-extrabold">500+</div>
-            <div className="text-xs text-emerald-300">APMC Markets</div>
+            <div className="text-xs text-emerald-300">{t('stat_apmc', 'APMC Markets')}</div>
           </div>
           <div className="space-y-1">
             <div className="text-3xl font-extrabold">2,000+</div>
-            <div className="text-xs text-emerald-300">Mandi Agents</div>
+            <div className="text-xs text-emerald-300">{t('stat_agents', 'Mandi Agents')}</div>
           </div>
           <div className="space-y-1">
             <div className="text-3xl font-extrabold">10,000+</div>
-            <div className="text-xs text-emerald-300">Registered Buyers</div>
+            <div className="text-xs text-emerald-300">{t('stat_buyers', 'Registered Buyers')}</div>
           </div>
           <div className="space-y-1">
             <div className="text-3xl font-extrabold">₹0</div>
-            <div className="text-xs text-emerald-300">Licence Fee for Buyers</div>
+            <div className="text-xs text-emerald-300">{t('stat_fee', 'Licence Fee for Buyers')}</div>
           </div>
         </div>
       </section>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { updateProfileApi, getProfileApi } from '../api/auth';
 import { useToast } from '../context/ToastContext';
 import { AgriLoader } from '../components/AgriLoader';
+import { useTranslation } from 'react-i18next';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -82,6 +83,7 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
   onSaveSuccess,
 }) => {
   const { showToast } = useToast();
+  const { t } = useTranslation();
   const [activeSection, setActiveSection] = useState<Section>('personal');
 
   // ── Personal Info State ────────────────────────────────────────────────────
@@ -229,9 +231,9 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
 
   // ── Nav sections ───────────────────────────────────────────────────────────
   const sections = [
-    { id: 'personal' as Section, icon: '👤', label: 'Personal Info' },
-    { id: 'business' as Section, icon: '🏢', label: 'Business Details' },
-    { id: 'bank' as Section, icon: '🏦', label: 'Bank Details' },
+    { id: 'personal' as Section, icon: '👤', label: t('sect_personal_info', 'Personal Info') },
+    { id: 'business' as Section, icon: '🏢', label: t('sect_business_details', 'Business Details') },
+    { id: 'bank' as Section, icon: '🏦', label: t('sect_bank_details', 'Bank Details') },
     // { id: 'notifications' as Section, icon: '🔔', label: 'Notifications' },
     // { id: 'security' as Section, icon: '🔒', label: 'Security' },
   ];
@@ -242,17 +244,17 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <div className="text-xs text-slate-400 font-medium mb-1">
-            <button onClick={onBackToDashboard} className="hover:text-slate-600 underline">Home</button>
+            <button onClick={onBackToDashboard} className="hover:text-slate-600 underline">{t('nav_home', 'Home')}</button>
             <span className="mx-1.5">›</span>
-            <span className="text-slate-500 font-semibold">Profile &amp; Settings</span>
+            <span className="text-slate-500 font-semibold">{t('profile_settings', 'Profile & Settings')}</span>
           </div>
-          <h1 className="text-2xl font-black text-slate-800 tracking-tight">Profile &amp; Settings</h1>
+          <h1 className="text-2xl font-black text-slate-800 tracking-tight">{t('profile_settings', 'Profile & Settings')}</h1>
         </div>
         <button
           onClick={handleSaveAll}
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#1b4d4f] hover:bg-[#123637] text-white text-xs font-bold rounded-md shadow-xs transition shrink-0"
         >
-          💾 Save All Changes
+          💾 {t('btn_save_all_changes', 'Save All Changes')}
         </button>
       </div>
 
@@ -281,15 +283,15 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
             <div className="bg-white border border-slate-200 rounded-xl shadow-xs p-6 space-y-5">
               <div className="flex justify-between items-center pb-3 border-b border-slate-100">
                 <div>
-                  <h2 className="text-sm font-bold text-slate-800">Personal Information</h2>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Your registered contact details</p>
+                  <h2 className="text-sm font-bold text-slate-800">{t('title_personal_info', 'Personal Information')}</h2>
+                  <p className="text-[10px] text-slate-400 mt-0.5">{t('desc_personal_info', 'Your registered contact details')}</p>
                 </div>
                 {!editingPersonal ? (
                   <button
                     onClick={() => setEditingPersonal(true)}
                     className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-[#1b4d4f] border border-[#1b4d4f] rounded-md hover:bg-teal-50 transition"
                   >
-                    ✏ Edit
+                    ✏ {t('btn_edit', 'Edit')}
                   </button>
                 ) : (
                   <div className="flex gap-2">
@@ -297,26 +299,26 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
                       onClick={() => setEditingPersonal(false)}
                       className="px-3.5 py-2 text-xs font-bold text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition"
                     >
-                      Cancel
+                      {t('cancel', 'Cancel')}
                     </button>
                     <button
                       onClick={handleSaveAll}
                       className="px-3.5 py-2 text-xs font-bold text-white bg-[#1b4d4f] rounded-md hover:bg-[#123637] transition"
                     >
-                      Save
+                      {t('btn_save', 'Save')}
                     </button>
                   </div>
                 )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Field label="Full Name" value={personalInfo.fullName}
+                <Field label={t('field_full_name', 'Full Name')} value={personalInfo.fullName}
                   editable={editingPersonal} onChange={(v) => setPersonalInfo(p => ({ ...p, fullName: v }))} />
-                <Field label="Mobile" value={personalInfo.mobile}
+                <Field label={t('field_mobile', 'Mobile')} value={personalInfo.mobile}
                   editable={editingPersonal} readOnly={true} type="tel" onChange={(v) => setPersonalInfo(p => ({ ...p, mobile: v }))} />
-                <Field label="Email" value={personalInfo.email}
+                <Field label={t('field_email', 'Email')} value={personalInfo.email}
                   editable={editingPersonal} type="email" onChange={(v) => setPersonalInfo(p => ({ ...p, email: v }))} />
-                <Field label="State" value={personalInfo.state}
+                <Field label={t('field_state', 'State')} value={personalInfo.state}
                   editable={editingPersonal} onChange={(v) => setPersonalInfo(p => ({ ...p, state: v }))} />
               </div>
             </div>
@@ -327,39 +329,39 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
             <div className="bg-white border border-slate-200 rounded-xl shadow-xs p-6 space-y-5">
               <div className="flex justify-between items-center pb-3 border-b border-slate-100">
                 <div>
-                  <h2 className="text-sm font-bold text-slate-800">Business Details</h2>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Your trading entity details</p>
+                  <h2 className="text-sm font-bold text-slate-800">{t('sect_business_details', 'Business Details')}</h2>
+                  <p className="text-[10px] text-slate-400 mt-0.5">{t('desc_business_details', 'Your trading entity details')}</p>
                 </div>
                 {!editingBusiness ? (
                   <button
                     onClick={() => setEditingBusiness(true)}
                     className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-[#1b4d4f] border border-[#1b4d4f] rounded-md hover:bg-teal-50 transition"
                   >
-                    ✏ Edit
+                    ✏ {t('btn_edit', 'Edit')}
                   </button>
                 ) : (
                   <div className="flex gap-2">
-                    <button onClick={() => setEditingBusiness(false)} className="px-3.5 py-2 text-xs font-bold text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Cancel</button>
-                    <button onClick={handleSaveAll} className="px-3.5 py-2 text-xs font-bold text-white bg-[#1b4d4f] rounded-md hover:bg-[#123637] transition">Save</button>
+                    <button onClick={() => setEditingBusiness(false)} className="px-3.5 py-2 text-xs font-bold text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">{t('cancel', 'Cancel')}</button>
+                    <button onClick={handleSaveAll} className="px-3.5 py-2 text-xs font-bold text-white bg-[#1b4d4f] rounded-md hover:bg-[#123637] transition">{t('btn_save', 'Save')}</button>
                   </div>
                 )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Field label="Business Name" value={businessInfo.businessName} editable={editingBusiness}
+                <Field label={t('field_business_name', 'Business Name')} value={businessInfo.businessName} editable={editingBusiness}
                   onChange={(v) => setBusinessInfo(b => ({ ...b, businessName: v }))} />
-                <Field label="Business Type" value={businessInfo.businessType} editable={editingBusiness}
+                <Field label={t('field_business_type', 'Business Type')} value={businessInfo.businessType} editable={editingBusiness}
                   onChange={(v) => setBusinessInfo(b => ({ ...b, businessType: v }))} />
-                <Field label="GSTIN" value={businessInfo.gstin} editable={editingBusiness}
+                <Field label={t('field_gstin', 'GSTIN')} value={businessInfo.gstin} editable={editingBusiness}
                   onChange={(v) => setBusinessInfo(b => ({ ...b, gstin: v }))} />
-                <Field label="District" value={businessInfo.district} editable={editingBusiness}
+                <Field label={t('field_district', 'District')} value={businessInfo.district} editable={editingBusiness}
                   onChange={(v) => setBusinessInfo(b => ({ ...b, district: v }))} />
-                <Field label="Annual Turnover" value={businessInfo.turnover} editable={editingBusiness}
+                <Field label={t('field_annual_turnover', 'Annual Turnover')} value={businessInfo.turnover} editable={editingBusiness}
                   onChange={(v) => setBusinessInfo(b => ({ ...b, turnover: v }))} />
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-slate-450 uppercase tracking-wider">Business Address</label>
+                <label className="text-[10px] font-bold text-slate-450 uppercase tracking-wider">{t('field_business_address', 'Business Address')}</label>
                 <textarea
                   value={businessInfo.address}
                   readOnly={!editingBusiness}
@@ -373,9 +375,9 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
               {/* GSTIN Verification badge */}
               <div className="flex items-center gap-2 text-xs">
                 <span className="bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-bold px-2.5 py-1 rounded-md flex items-center gap-1">
-                  ✓ GSTIN Verified
+                  ✓ {t('badge_gstin_verified', 'GSTIN Verified')}
                 </span>
-                <span className="text-slate-400 text-[10px]">Verified on 12 Jun 2025 via GST Portal</span>
+                <span className="text-slate-400 text-[10px]">{t('desc_gstin_verified', 'Verified on 12 Jun 2025 via GST Portal')}</span>
               </div>
             </div>
           )}
@@ -385,20 +387,20 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
             <div className="bg-white border border-slate-200 rounded-xl shadow-xs p-6 space-y-5">
               <div className="flex justify-between items-center pb-3 border-b border-slate-100">
                 <div>
-                  <h2 className="text-sm font-bold text-slate-800">Bank Details <span className="text-slate-400 font-normal text-xs">(for Withdrawals)</span></h2>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Manage your withdrawal bank account</p>
+                  <h2 className="text-sm font-bold text-slate-800">{t('sect_bank_details', 'Bank Details')} <span className="text-slate-400 font-normal text-xs">{t('desc_for_withdrawals', '(for Withdrawals)')}</span></h2>
+                  <p className="text-[10px] text-slate-400 mt-0.5">{t('desc_manage_bank', 'Manage your withdrawal bank account')}</p>
                 </div>
                 {!editingBank ? (
                   <button
                     onClick={handleBankEditClick}
                     className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-[#1b4d4f] border border-[#1b4d4f] rounded-md hover:bg-teal-50 transition"
                   >
-                    ✏ Edit
+                    ✏ {t('btn_edit', 'Edit')}
                   </button>
                 ) : (
                   <div className="flex gap-2">
-                    <button onClick={() => setEditingBank(false)} className="px-3.5 py-2 text-xs font-bold text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">Cancel</button>
-                    <button onClick={handleSaveAll} className="px-3.5 py-2 text-xs font-bold text-white bg-[#1b4d4f] rounded-md hover:bg-[#123637] transition">Save</button>
+                    <button onClick={() => setEditingBank(false)} className="px-3.5 py-2 text-xs font-bold text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50 transition">{t('cancel', 'Cancel')}</button>
+                    <button onClick={handleSaveAll} className="px-3.5 py-2 text-xs font-bold text-white bg-[#1b4d4f] rounded-md hover:bg-[#123637] transition">{t('btn_save', 'Save')}</button>
                   </div>
                 )}
               </div>
@@ -406,20 +408,20 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({
 
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Field label="Bank Name" value={bankInfo.bankName} editable={editingBank}
+                <Field label={t('field_bank_name', 'Bank Name')} value={bankInfo.bankName} editable={editingBank}
                   onChange={(v) => setBankInfo(b => ({ ...b, bankName: v }))} />
-                <Field label="Account Number" value={bankInfo.accountNumber} editable={editingBank}
+                <Field label={t('field_account_number', 'Account Number')} value={bankInfo.accountNumber} editable={editingBank}
                   masked={true} onChange={(v) => setBankInfo(b => ({ ...b, accountNumber: v }))} />
-                <Field label="IFSC Code" value={bankInfo.ifsc} editable={editingBank}
+                <Field label={t('field_ifsc_code', 'IFSC Code')} value={bankInfo.ifsc} editable={editingBank}
                   onChange={(v) => setBankInfo(b => ({ ...b, ifsc: v }))} />
-                <Field label="Account Name" value={bankInfo.accountName} editable={editingBank}
+                <Field label={t('field_account_name', 'Account Name')} value={bankInfo.accountName} editable={editingBank}
                   onChange={(v) => setBankInfo(b => ({ ...b, accountName: v }))} />
               </div>
 
               {!editingBank && (
                 <div className="bg-slate-50 border border-slate-200 rounded-md p-3 text-[10px] text-slate-500 flex items-center gap-2">
                   <span>🔒</span>
-                  <span>Bank account details are securely masked. Click <strong>Edit</strong> to update.</span>
+                  <span>{t('desc_bank_masked', 'Bank account details are securely masked. Click Edit to update.')}</span>
                 </div>
               )}
             </div>

@@ -17,7 +17,7 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: 'en', // Default language
+    lng: localStorage.getItem('buyer_language') || 'en', // Default language
     fallbackLng: 'en',
     interpolation: {
       escapeValue: false, // React already safes from xss

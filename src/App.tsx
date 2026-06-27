@@ -71,6 +71,7 @@ function AppContent() {
   const [walletAvailable, setWalletAvailable] = useState<number>(18000);
   const [unreadNotifications, setUnreadNotifications] = useState<number>(2);
   const walletOnHold = 6500;
+  const [selectedAuction, setSelectedAuction] = useState<any>(null);
 
   const [demands, setDemands] = useState<any[]>([
     {
@@ -233,8 +234,8 @@ function AppContent() {
             <Route path="/agents" element={<AgentDiscoveryPage onBackToMarkets={() => navigate('/auctions')} onViewAuctions={() => navigate('/auctions-list')} onViewProfile={(id) => navigate(`/profile?agent_id=${id}`)} />} />
             <Route path="/profile" element={<AgentProfilePage formData={formData} onBackToAgents={() => navigate('/agents')} onSubmitRequest={() => navigate('/my-agents')} />} />
             <Route path="/my-agents" element={<MyAgentsPage onFindNewAgents={() => navigate('/auctions')} onViewAuctions={() => navigate('/auctions-list')} />} />
-            <Route path="/auctions-list" element={<LiveAuctionsPage onJoinAuction={() => navigate('/bidding')} onBackToDashboard={() => navigate('/dashboard')} />} />
-            <Route path="/bidding" element={<LiveBiddingPage onBackToAuctions={() => navigate('/auctions-list')} onPlaceBidSuccess={() => navigate('/won')} />} />
+            <Route path="/auctions-list" element={<LiveAuctionsPage onJoinAuction={(auc) => { setSelectedAuction(auc); navigate('/bidding'); }} onBackToDashboard={() => navigate(-1)} />} />
+            <Route path="/bidding" element={<LiveBiddingPage auction={selectedAuction} onBackToAuctions={() => navigate('/auctions-list')} onPlaceBidSuccess={() => navigate('/won')} />} />
             <Route path="/won" element={<AuctionWonPage onBackToAuctions={() => navigate('/auctions-list')} onBookTransport={() => navigate('/transport-booking')} />} />
             <Route path="/marketplace" element={<MarketplacePage onBackToDashboard={() => navigate('/dashboard')} onSelectProduct={() => navigate('/product-detail')} />} />
             <Route path="/product-detail" element={
