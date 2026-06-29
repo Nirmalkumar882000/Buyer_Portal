@@ -104,7 +104,7 @@ export const RegisterStep2: React.FC<RegisterStep2Props> = ({
           <div className="flex items-center gap-2 cursor-pointer w-fit group pt-2" onClick={onBack}>
             <span className="text-white font-bold group-hover:text-slate-200 transition group-hover:-translate-x-1">{t('back')}</span>
           </div>
-          <img src="/logo.png" alt="VelaanBay Logo" className="h-24 w-auto object-contain drop-shadow-lg" />
+          <img src="/logo.png" alt="VelaanBay Logo" className="h-32 w-auto object-contain drop-shadow-lg" />
         </div>
 
         <div className="text-center sm:text-left">

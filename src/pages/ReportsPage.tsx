@@ -14,13 +14,13 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
   deliveryAddress,
   onBackToDashboard,
 }) => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'ledger'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'ledger'>('history');
 
   return (
     <div className="space-y-6 font-sans">
       {/* Sub Tabs Panel */}
       <div className="border-b border-slate-200 flex gap-6">
-        <button
+        {/* <button
           onClick={() => setActiveTab('dashboard')}
           className={`pb-3 text-sm font-bold transition-all relative
             ${activeTab === 'dashboard'
@@ -29,7 +29,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
             }`}
         >
           Reports Dashboard
-        </button>
+        </button> */}
         <button
           onClick={() => setActiveTab('history')}
           className={`pb-3 text-sm font-bold transition-all relative
@@ -40,7 +40,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
         >
           Purchase History
         </button>
-        <button
+        {/* <button
           onClick={() => setActiveTab('ledger')}
           className={`pb-3 text-sm font-bold transition-all relative
             ${activeTab === 'ledger'
@@ -49,12 +49,12 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
             }`}
         >
           Account Ledger / Statement
-        </button>
+        </button> */}
       </div>
 
-      {activeTab === 'dashboard' && (
+      {/* {activeTab === 'dashboard' && (
         <ReportsDashboardPage onNavigateTab={(tab) => setActiveTab(tab)} />
-      )}
+      )} */}
 
       {activeTab === 'history' && (
         <PurchaseHistoryPage
@@ -63,11 +63,11 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
         />
       )}
 
-      {activeTab === 'ledger' && (
+      {/* {activeTab === 'ledger' && (
         <AccountLedgerPage
           onBackToDashboard={onBackToDashboard}
         />
-      )}
+      )} */}
     </div>
   );
 };

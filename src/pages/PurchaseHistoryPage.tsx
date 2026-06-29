@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useToast } from '../context/ToastContext';
+import { fetchBuyerReports } from '../api/reports';
 
 interface PurchaseItem {
   date: string;
@@ -9,10 +10,12 @@ interface PurchaseItem {
   totalValue: number;
   seller: string;
   channel: 'Auction' | 'Fixed Price';
-  status: 'Delivered' | 'In Transit' | 'Processing';
-  emoji: string;
+  status: string;
   pricePerKg: number;
   qtyNum: number;
+  agentName?: string;
+  basePrice?: number;
+  biddingPrice?: number;
 }
 
 interface PurchaseHistoryPageProps {
@@ -20,88 +23,40 @@ interface PurchaseHistoryPageProps {
   deliveryAddress: string;
 }
 
-const initialPurchases: PurchaseItem[] = [
-  {
-    date: '15 Jul 2025',
-    orderId: 'ORD-2295',
-    product: 'Paddy (Grade A)',
-    qty: '5 MT',
-    totalValue: 975000,
-    seller: 'Murugan K. (Agent)',
-    channel: 'Auction',
-    status: 'Delivered',
-    emoji: '🌾',
-    pricePerKg: 195, // 975000 / 5000 kg = 195
-    qtyNum: 5000,
-  },
-  {
-    date: '10 Jul 2025',
-    orderId: 'ORD-9012',
-    product: 'Groundnut (Bold)',
-    qty: '500 kg',
-    totalValue: 26000,
-    seller: 'Rajan Farm',
-    channel: 'Fixed Price',
-    status: 'In Transit',
-    emoji: '🥜',
-    pricePerKg: 52,
-    qtyNum: 500,
-  },
-  {
-    date: '08 Jul 2025',
-    orderId: 'ORD-8810',
-    product: 'Onion (Large)',
-    qty: '1 MT',
-    totalValue: 19200,
-    seller: 'Arjunan N. (Agent)',
-    channel: 'Fixed Price',
-    status: 'Delivered',
-    emoji: '🧅',
-    pricePerKg: 19.2,
-    qtyNum: 1000,
-  },
-  {
-    date: '02 Jul 2025',
-    orderId: 'ORD-8721',
-    product: 'Wheat (Grade A)',
-    qty: '2 MT',
-    totalValue: 43000,
-    seller: 'Pandiyan K. (Agent)',
-    channel: 'Auction',
-    status: 'Delivered',
-    emoji: '🌾',
-    pricePerKg: 21.5,
-    qtyNum: 2000,
-  },
-  {
-    date: '25 Jun 2025',
-    orderId: 'ORD-8612',
-    product: 'Turmeric (Finger)',
-    qty: '200 kg',
-    totalValue: 28000,
-    seller: 'Pandiyan K. (Agent)',
-    channel: 'Fixed Price',
-    status: 'Delivered',
-    emoji: '🫚',
-    pricePerKg: 140,
-    qtyNum: 200,
-  },
-];
-
 export const PurchaseHistoryPage: React.FC<PurchaseHistoryPageProps> = ({
   onViewInvoice,
   deliveryAddress,
 }) => {
   const { showToast } = useToast();
-  const [fromDate, setFromDate] = useState('2025-07-01');
-  const [toDate, setToDate] = useState('2025-07-15');
-  const [selectedProduct, setSelectedProduct] = useState('Paddy');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState('All');
   const [selectedSeller, setSelectedSeller] = useState('All');
-  const [filteredPurchases, setFilteredPurchases] = useState<PurchaseItem[]>(initialPurchases);
+  const [purchases, setPurchases] = useState<PurchaseItem[]>([]);
+  const [filteredPurchases, setFilteredPurchases] = useState<PurchaseItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        const res = await fetchBuyerReports({ limit: 100 });
+        if (res.success && res.data && res.data.rows) {
+          setPurchases(res.data.rows);
+          setFilteredPurchases(res.data.rows);
+        }
+      } catch (err) {
+        showToast('Error loading purchase history', 'error');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
   const handleSearch = () => {
     // Dynamic filter logic
-    const results = initialPurchases.filter((item) => {
+    const results = purchases.filter((item) => {
       // Product Filter
       if (selectedProduct !== 'All' && !item.product.toLowerCase().includes(selectedProduct.toLowerCase())) {
         return false;
@@ -130,7 +85,6 @@ export const PurchaseHistoryPage: React.FC<PurchaseHistoryPageProps> = ({
       items: [
         {
           name: item.product,
-          emoji: item.emoji,
           pricePerKg: item.pricePerKg,
           qty: item.qtyNum,
         },
@@ -251,13 +205,18 @@ export const PurchaseHistoryPage: React.FC<PurchaseHistoryPageProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
-              {filteredPurchases.length > 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={9} className="p-8 text-center text-slate-400 font-medium">
+                    Loading purchases...
+                  </td>
+                </tr>
+              ) : filteredPurchases.length > 0 ? (
                 filteredPurchases.map((item, idx) => (
                   <tr key={idx} className="hover:bg-slate-50/50 transition">
                     <td className="p-4 text-slate-500">{item.date}</td>
                     <td className="p-4 text-slate-800 font-mono text-[11px]">{item.orderId}</td>
                     <td className="p-4 flex items-center gap-1.5">
-                      <span>{item.emoji}</span>
                       <span>{item.product}</span>
                     </td>
                     <td className="p-4 text-slate-800">{item.qty}</td>
@@ -265,24 +224,22 @@ export const PurchaseHistoryPage: React.FC<PurchaseHistoryPageProps> = ({
                     <td className="p-4 text-slate-650">{item.seller}</td>
                     <td className="p-4">
                       <span
-                        className={`inline-block px-2 py-0.5 rounded-xs text-[9px] font-bold border ${
-                          item.channel === 'Auction'
-                            ? 'bg-blue-50 border-blue-100 text-blue-700'
-                            : 'bg-indigo-50 border-indigo-100 text-indigo-700'
-                        }`}
+                        className={`inline-block px-2 py-0.5 rounded-xs text-[9px] font-bold border ${item.channel === 'Auction'
+                          ? 'bg-blue-50 border-blue-100 text-blue-700'
+                          : 'bg-indigo-50 border-indigo-100 text-indigo-700'
+                          }`}
                       >
                         {item.channel}
                       </span>
                     </td>
                     <td className="p-4">
                       <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                          item.status === 'Delivered'
-                            ? 'bg-emerald-55/70 border border-emerald-200 text-emerald-800'
-                            : item.status === 'In Transit'
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold ${item.status === 'Delivered'
+                          ? 'bg-emerald-55/70 border border-emerald-200 text-emerald-800'
+                          : item.status === 'In Transit'
                             ? 'bg-amber-50 border border-amber-250 text-amber-700'
                             : 'bg-blue-50 border border-blue-200 text-blue-800'
-                        }`}
+                          }`}
                       >
                         {item.status}
                       </span>

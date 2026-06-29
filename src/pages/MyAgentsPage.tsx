@@ -48,17 +48,17 @@ export const MyAgentsPage: React.FC<MyAgentsPageProps> = ({ onFindNewAgents, onV
 
     const dateStr = item.created_at
       ? new Date(item.created_at).toLocaleDateString('en-GB', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-        })
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      })
       : '';
 
     return {
       id: item.agent_id,
       name: item.agent_name || 'Unknown Agent',
       rating: '4.8',
-      market: `${item.agent_district || 'APMC'} APMC`,
+      market: `${item.agent_district}`,
       commodities: item.commodities ? item.commodities.split(',').map((c: string) => c.trim()) : [],
       date: dateStr,
       status: statusText,

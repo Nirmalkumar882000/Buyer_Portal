@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Settings, LayoutDashboard, Gavel, Store, Users, FileText, 
+import {
+  Settings, LayoutDashboard, Gavel, Store, Users, FileText,
   TrendingUp, UserCog, Wallet, ClipboardList, FileSignature, Globe, ChevronDown
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -109,7 +109,7 @@ export const AppShell: React.FC<AppShellProps> = ({
         style={{ height: 'var(--app-header-h, 64px)' }}
       >
         <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="VelaanBay Logo" className="h-8 w-auto drop-shadow-md" />
+          <img src="/logo.png" alt="VelaanBay Logo" className="h-20 w-auto drop-shadow-md" />
           <div className="text-lg font-bold tracking-tight">
             VelaanBay <span className="text-slate-300 font-normal text-sm ml-1.5 hidden sm:inline">{t('buyer_portal', 'Buyer Portal')}</span>
           </div>
@@ -272,7 +272,7 @@ export const AppShell: React.FC<AppShellProps> = ({
           {/* Sidebar Toggle Area */}
           <div className={`flex items-center py-4 border-b border-slate-100 ${isSidebarOpen ? 'justify-between px-6' : 'justify-center'}`}>
             {isSidebarOpen && <span className="font-bold text-slate-700">Menu</span>}
-            <button 
+            <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               className="p-1.5 text-slate-400 hover:text-[#1a4a49] hover:bg-slate-100 rounded-md transition"
             >
