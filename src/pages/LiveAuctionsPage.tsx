@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { BackButton } from '../components/BackButton';
 import { getBuyerAgentProducts, setBuyerReminder } from '../api/markets';
 import { useToast } from '../context/ToastContext';
@@ -11,13 +12,21 @@ interface LiveAuctionsPageProps {
 }
 
 export const LiveAuctionsPage: React.FC<LiveAuctionsPageProps> = ({ onJoinAuction, onBackToDashboard }) => {
+  const { t } = useTranslation();
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<'live' | 'upcoming' | 'completed'>('live');
   const [searchInput, setSearchInput] = useState('');
   const [searchString, setSearchString] = useState('');
   const [selectedAgent, setSelectedAgent] = useState('');
   const [selectedProduct, setSelectedProduct] = useState('');
-  const [reminders, setReminders] = useState<Record<string | number, boolean>>({});
+  const [reminders, setReminders] = useState<Record<string | number, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem('buyerReminders');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
   const [selectedLot, setSelectedLot] = useState<any | null>(null);
 
   const apiStatus = activeTab === 'live' ? 'LIVE' : activeTab === 'upcoming' ? 'UPCOMING' : 'COMPLETED';
@@ -91,7 +100,11 @@ export const LiveAuctionsPage: React.FC<LiveAuctionsPageProps> = ({ onJoinAuctio
   const handleSetReminder = async (lotId: string | number) => {
     try {
       await setBuyerReminder(lotId);
-      setReminders(prev => ({ ...prev, [lotId]: true }));
+      setReminders(prev => {
+        const updated = { ...prev, [lotId]: true };
+        localStorage.setItem('buyerReminders', JSON.stringify(updated));
+        return updated;
+      });
       showToast('Reminder set successfully! We will notify you 5 minutes before the auction starts.', 'success');
     } catch (error: any) {
       console.error(error);
@@ -146,11 +159,11 @@ export const LiveAuctionsPage: React.FC<LiveAuctionsPageProps> = ({ onJoinAuctio
       {/* Back Button + Title Row */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-4">
-          <BackButton onClick={onBackToDashboard} label="Back" />
+          <BackButton onClick={onBackToDashboard} label={t('back', 'Back')} />
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">Live & Upcoming Auctions</h1>
+            <h1 className="text-2xl font-bold text-slate-800">{t('live_and_upcoming_auctions', 'Live & Upcoming Auctions')}</h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              {isLoading ? 'Loading auctions...' : `From your approved agents — ${totalRecords} auctions available`}
+              {isLoading ? t('loading_auctions', 'Loading auctions...') : `${t('from_approved_agents', 'From your approved agents')} — ${totalRecords} ${t('auctions_available', 'auctions available')}`}
             </p>
           </div>
         </div>
@@ -159,7 +172,7 @@ export const LiveAuctionsPage: React.FC<LiveAuctionsPageProps> = ({ onJoinAuctio
             onClick={() => refetch()}
             className="bg-[#1b4d4f] hover:bg-[#123637] text-white text-xs font-bold px-4 py-2.5 rounded-md transition shadow-xs"
           >
-            🔄 Refresh
+            🔄 {t('refresh', 'Refresh')}
           </button>
         </div>
       </div>
@@ -169,7 +182,7 @@ export const LiveAuctionsPage: React.FC<LiveAuctionsPageProps> = ({ onJoinAuctio
         <div>
           <input
             type="text"
-            placeholder="Search by produce, agent..."
+            placeholder={t('search_by_produce_agent', 'Search by produce, agent...')}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -182,7 +195,7 @@ export const LiveAuctionsPage: React.FC<LiveAuctionsPageProps> = ({ onJoinAuctio
             onChange={(e) => setSelectedAgent(e.target.value)}
             className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm text-slate-800 outline-hidden transition focus:border-[#1b4d4f]"
           >
-            <option value="">All Agents</option>
+            <option value="">{t('all_agents', 'All Agents')}</option>
             {uniqueAgents.map(name => (
               <option key={name} value={name}>{name}</option>
             ))}
@@ -194,7 +207,7 @@ export const LiveAuctionsPage: React.FC<LiveAuctionsPageProps> = ({ onJoinAuctio
             onChange={(e) => setSelectedProduct(e.target.value)}
             className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm text-slate-800 outline-hidden transition focus:border-[#1b4d4f]"
           >
-            <option value="">All Products</option>
+            <option value="">{t('all_products', 'All Products')}</option>
             {uniqueProducts.map(prod => (
               <option key={prod} value={prod}>{prod}</option>
             ))}
@@ -211,7 +224,7 @@ export const LiveAuctionsPage: React.FC<LiveAuctionsPageProps> = ({ onJoinAuctio
               }}
               className="text-xs text-red-650 hover:text-red-750 font-bold transition whitespace-nowrap px-2 py-2"
             >
-              Clear Filters
+              {t('clear_filters', 'Clear Filters')}
             </button>
           )}
         </div>
@@ -223,28 +236,28 @@ export const LiveAuctionsPage: React.FC<LiveAuctionsPageProps> = ({ onJoinAuctio
           onClick={() => setActiveTab('live')}
           className={`py-2 px-1 border-b-2 transition-all duration-150 ${activeTab === 'live' ? 'border-[#1b4d4f] text-[#1b4d4f]' : 'border-transparent hover:text-slate-600'}`}
         >
-          🔴 Live {activeTab === 'live' && `(${totalRecords})`}
+          🔴 {t('live', 'Live')} {activeTab === 'live' && `(${totalRecords})`}
         </button>
         <button
           onClick={() => setActiveTab('upcoming')}
           className={`py-2 px-1 border-b-2 transition-all duration-150 ${activeTab === 'upcoming' ? 'border-[#1b4d4f] text-[#1b4d4f]' : 'border-transparent hover:text-slate-600'}`}
         >
-          🟡 Upcoming {activeTab === 'upcoming' && `(${totalRecords})`}
+          🟡 {t('upcoming', 'Upcoming')} {activeTab === 'upcoming' && `(${totalRecords})`}
         </button>
         <button
           onClick={() => setActiveTab('completed')}
           className={`py-2 px-1 border-b-2 transition-all duration-150 ${activeTab === 'completed' ? 'border-[#1b4d4f] text-[#1b4d4f]' : 'border-transparent hover:text-slate-600'}`}
         >
-          🟢 Completed Today {activeTab === 'completed' && `(${totalRecords})`}
+          🟢 {t('completed_today', 'Completed Today')} {activeTab === 'completed' && `(${totalRecords})`}
         </button>
       </div>
 
       {/* Auction Cards Grid */}
       {isLoading ? (
-        <AgriLoader message="Loading auctions..." />
+        <AgriLoader message={t('loading_auctions', 'Loading auctions...')} />
       ) : auctionsList.length === 0 ? (
         <div className="py-12 text-center text-slate-500 font-medium">
-          No auctions found for this category.
+          {t('no_auctions_found', 'No auctions found for this category.')}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -255,13 +268,13 @@ export const LiveAuctionsPage: React.FC<LiveAuctionsPageProps> = ({ onJoinAuctio
 
             const borderColor = isLive ? 'border-red-500' : isUpcoming ? 'border-amber-400' : 'border-emerald-500';
             const bannerBg = isLive ? 'bg-red-500' : isUpcoming ? 'bg-amber-500' : 'bg-emerald-500';
-            const statusLabel = isLive ? '🔴 LIVE NOW' : isUpcoming ? '🟡 UPCOMING' : '🟢 COMPLETED';
+            const statusLabel = isLive ? t('live_now_label', '🔴 LIVE NOW') : isUpcoming ? t('upcoming_label', '🟡 UPCOMING') : t('completed_label', '🟢 COMPLETED');
 
             const timeText = isLive
               ? getTimeRemaining(auc.endDate)
               : isUpcoming
-                ? `Starts in ${getTimeUntilStart(auc.startDate)}`
-                : 'Finished';
+                ? `${t('starts_in', 'Starts in')} ${getTimeUntilStart(auc.startDate)}`
+                : t('finished', 'Finished');
 
             return (
               <div
@@ -287,72 +300,72 @@ export const LiveAuctionsPage: React.FC<LiveAuctionsPageProps> = ({ onJoinAuctio
                 <div className="p-5 space-y-4 flex-1 flex flex-col justify-between">
                   <div className="space-y-1">
                     <span className="text-[9px] font-bold uppercase tracking-wider text-teal-800 bg-teal-50 px-2 py-0.5 rounded-full">
-                      {auc.categoryName || 'Fruits'}
+                      {auc.categoryName || t('cat_fruits', 'Fruits')}
                     </span>
                     <h3 className="text-base font-bold text-slate-800 mt-1">
-                      {auc.productName} ({auc.varietyName || 'Unknown Variety'})
+                      {auc.productName} ({auc.varietyName || t('unknown_variety', 'Unknown Variety')})
                     </h3>
-                    <p className="text-[10px] text-slate-400">Agent: {auc.agentName} &bull; Lot #{auc.lotId} &bull; Grade: <span className="font-bold text-slate-600">{auc.grade || 'Grade A'}</span></p>
+                    <p className="text-[10px] text-slate-400">{t('agent', 'Agent')}: {auc.agentName} &bull; {t('lot_hash', 'Lot #')}{auc.lotId} &bull; {t('grade', 'Grade')}: <span className="font-bold text-slate-600">{auc.grade || t('grade_a', 'Grade A')}</span></p>
                   </div>
 
                   {isLive ? (
                     <div className="grid grid-cols-2 gap-y-4 text-xs font-semibold py-2">
                       <div className="space-y-0.5">
-                        <span className="text-[9px] text-slate-400 uppercase">Quantity</span>
+                        <span className="text-[9px] text-slate-400 uppercase">{t('quantity', 'Quantity')}</span>
                         <p className="text-slate-700">{auc.qty} {auc.unit}</p>
                       </div>
                       <div className="space-y-0.5">
-                        <span className="text-[9px] text-slate-400 uppercase">Min Bid</span>
-                        <p className="text-slate-700">₹{Number(auc.basePrice).toLocaleString()}/{auc.unit}</p>
+                        <span className="text-[9px] text-slate-400 uppercase">{t('min_bid', 'Min Bid')}</span>
+                        <p className="text-slate-700">₹{Number(auc.basePrice).toLocaleString()}</p>
                       </div>
                       <div className="space-y-0.5">
-                        <span className="text-[9px] text-slate-400 uppercase">Current Bid</span>
+                        <span className="text-[9px] text-slate-400 uppercase">{t('current_bid', 'Current Bid')}</span>
                         <p className="text-emerald-600 text-sm font-bold">
-                          {auc.highestBid > 0 ? `₹${Number(auc.highestBid).toLocaleString()}/${auc.unit}` : 'N/A'}
+                          {auc.highestBid > 0 ? `₹${Number(auc.highestBid).toLocaleString()}` : t('na', 'N/A')}
                         </p>
                       </div>
                       <div className="space-y-0.5">
-                        <span className="text-[9px] text-slate-400 uppercase">Total Bids</span>
+                        <span className="text-[9px] text-slate-400 uppercase">{t('total_bids', 'Total Bids')}</span>
                         <p className="text-slate-700">{auc.totalBids}</p>
                       </div>
                     </div>
                   ) : isUpcoming ? (
                     <div className="grid grid-cols-2 gap-y-4 text-xs font-semibold py-2">
                       <div className="space-y-0.5">
-                        <span className="text-[9px] text-slate-400 uppercase">Quantity</span>
+                        <span className="text-[9px] text-slate-400 uppercase">{t('quantity', 'Quantity')}</span>
                         <p className="text-slate-700">{auc.qty} {auc.unit}</p>
                       </div>
                       <div className="space-y-0.5">
-                        <span className="text-[9px] text-slate-400 uppercase">Base Price</span>
-                        <p className="text-slate-700">₹{Number(auc.basePrice).toLocaleString()}/{auc.unit}</p>
+                        <span className="text-[9px] text-slate-400 uppercase">{t('base_price', 'Base Price')}</span>
+                        <p className="text-slate-700">₹{Number(auc.basePrice).toLocaleString()}</p>
                       </div>
                       <div className="space-y-0.5">
-                        <span className="text-[9px] text-slate-400 uppercase">Status</span>
-                        <p className="text-[#1b4d4f] font-bold">Scheduled</p>
+                        <span className="text-[9px] text-slate-400 uppercase">{t('status', 'Status')}</span>
+                        <p className="text-[#1b4d4f] font-bold">{t('scheduled', 'Scheduled')}</p>
                       </div>
                       <div className="space-y-0.5">
-                        <span className="text-[9px] text-slate-400 uppercase">Total Bids</span>
+                        <span className="text-[9px] text-slate-400 uppercase">{t('total_bids', 'Total Bids')}</span>
                         <p className="text-slate-700">{auc.totalBids}</p>
                       </div>
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-y-4 text-xs font-semibold py-2">
                       <div className="space-y-0.5">
-                        <span className="text-[9px] text-slate-400 uppercase">Quantity</span>
+                        <span className="text-[9px] text-slate-400 uppercase">{t('quantity', 'Quantity')}</span>
                         <p className="text-slate-700">{auc.qty} {auc.unit}</p>
                       </div>
                       <div className="space-y-0.5">
-                        <span className="text-[9px] text-slate-400 uppercase">Sold Price</span>
+                        <span className="text-[9px] text-slate-400 uppercase">{t('sold_price', 'Sold Price')}</span>
                         <p className="text-emerald-700 font-bold">
-                          ₹{Number(auc.highestBid || auc.basePrice).toLocaleString()}/{auc.unit}
+                          ₹{Number(auc.highestBid || auc.basePrice).toLocaleString()}
                         </p>
                       </div>
                       <div className="space-y-0.5">
-                        <span className="text-[9px] text-slate-400 uppercase">Total Bids</span>
+                        <span className="text-[9px] text-slate-400 uppercase">{t('total_bids', 'Total Bids')}</span>
                         <p className="text-slate-700">{auc.totalBids}</p>
                       </div>
                       <div className="space-y-0.5">
-                        <span className="text-[9px] text-slate-400 uppercase">Lot Status</span>
+                        <span className="text-[9px] text-slate-400 uppercase">{t('lot_status', 'Lot Status')}</span>
                         <p className="text-slate-700 font-bold uppercase">{auc.lotStatus}</p>
                       </div>
                     </div>
@@ -361,11 +374,11 @@ export const LiveAuctionsPage: React.FC<LiveAuctionsPageProps> = ({ onJoinAuctio
                   {/* Start & End Times with Seconds */}
                   <div className="text-[10px] text-slate-500 space-y-1 bg-slate-50 p-2.5 rounded-md border border-slate-100">
                     <div className="flex justify-between">
-                      <span className="font-semibold text-slate-400">Start Time:</span>
+                      <span className="font-semibold text-slate-400">{t('start_time', 'Start Time:')}</span>
                       <span className="font-bold text-slate-700">{formatDateTimeWithSeconds(auc.startDate)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-semibold text-slate-400">End Time:</span>
+                      <span className="font-semibold text-slate-400">{t('end_time', 'End Time:')}</span>
                       <span className="font-bold text-slate-700">{formatDateTimeWithSeconds(auc.endDate)}</span>
                     </div>
                   </div>
@@ -377,7 +390,7 @@ export const LiveAuctionsPage: React.FC<LiveAuctionsPageProps> = ({ onJoinAuctio
                         onClick={() => onJoinAuction(auc)}
                         className="flex-1 bg-[#1b4d4f] hover:bg-[#123637] text-white text-xs font-bold py-2.5 rounded-md transition shadow-xs text-center"
                       >
-                        Join Auction →
+                        {t('join_auction', 'Join Auction')} →
                       </button>
                     ) : isUpcoming ? (
                       <button
@@ -388,27 +401,27 @@ export const LiveAuctionsPage: React.FC<LiveAuctionsPageProps> = ({ onJoinAuctio
                             : 'bg-white hover:bg-slate-50 text-[#1b4d4f] border-[#1b4d4f]'
                           }`}
                       >
-                        {reminders[auc.lotId] ? '✓ Reminder Set' : 'Set Reminder'}
+                        {reminders[auc.lotId] ? t('reminder_set', '✓ Reminder Set') : t('set_reminder', 'Set Reminder')}
                       </button>
                     ) : (
                       <button
                         disabled
                         className="flex-1 bg-slate-100 text-slate-400 border border-slate-200 text-xs font-bold py-2.5 rounded-md text-center cursor-not-allowed"
                       >
-                        Auction Ended
+                        {t('auction_ended', 'Auction Ended')}
                       </button>
                     )}
                     {/* View Details Button */}
                     <button
                       onClick={() => setSelectedLot({ ...auc, isLive, isUpcoming, isCompleted })}
                       className="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-800 text-xs font-bold rounded-md border border-slate-200 transition flex items-center gap-1"
-                      title="View Details"
+                      title={t('view_details', 'View Details')}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                         <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
                       </svg>
-                      View
+                      {t('view', 'View')}
                     </button>
                   </div>
                 </div>
@@ -430,7 +443,7 @@ export const LiveAuctionsPage: React.FC<LiveAuctionsPageProps> = ({ onJoinAuctio
               selectedLot.isLive ? 'bg-red-500' : selectedLot.isUpcoming ? 'bg-amber-500' : 'bg-emerald-500'
             }`}>
               <span className="text-xs font-bold">
-                {selectedLot.isLive ? '🔴 LIVE NOW' : selectedLot.isUpcoming ? '🟡 UPCOMING' : '🟢 COMPLETED'} — Lot #{selectedLot.lotId}
+                {selectedLot.isLive ? t('live_now_label', '🔴 LIVE NOW') : selectedLot.isUpcoming ? t('upcoming_label', '🟡 UPCOMING') : t('completed_label', '🟢 COMPLETED')} — {t('lot_hash', 'Lot #')}{selectedLot.lotId}
               </span>
               <button
                 onClick={() => setSelectedLot(null)}
@@ -451,7 +464,7 @@ export const LiveAuctionsPage: React.FC<LiveAuctionsPageProps> = ({ onJoinAuctio
               />
             ) : (
               <div className="w-full h-20 bg-slate-100 flex items-center justify-center text-slate-400 text-xs">
-                No Image Available
+                {t('no_image_available', 'No Image Available')}
               </div>
             )}
 
@@ -460,36 +473,36 @@ export const LiveAuctionsPage: React.FC<LiveAuctionsPageProps> = ({ onJoinAuctio
               {/* Product Info */}
               <div>
                 <span className="text-[9px] font-bold uppercase tracking-wider text-teal-800 bg-teal-50 px-2 py-0.5 rounded-full">
-                  {selectedLot.categoryName || 'Fruits'}
+                  {selectedLot.categoryName || t('cat_fruits', 'Fruits')}
                 </span>
                 <h2 className="text-sm font-bold text-slate-800 mt-1.5">
-                  {selectedLot.productName} ({selectedLot.varietyName || 'Unknown Variety'})
+                  {selectedLot.productName} ({selectedLot.varietyName || t('unknown_variety', 'Unknown Variety')})
                 </h2>
-                <p className="text-xs text-slate-500 mt-0.5">Agent: <span className="font-semibold text-slate-700">{selectedLot.agentName}</span> &bull; Grade: <span className="font-semibold text-slate-700">{selectedLot.grade || 'Grade A'}</span></p>
+                <p className="text-xs text-slate-500 mt-0.5">{t('agent', 'Agent')}: <span className="font-semibold text-slate-700">{selectedLot.agentName}</span> &bull; {t('grade', 'Grade')}: <span className="font-semibold text-slate-700">{selectedLot.grade || t('grade_a', 'Grade A')}</span></p>
               </div>
 
               {/* Details Grid — 3 columns */}
               <div className="grid grid-cols-3 gap-2">
                 <div className="bg-slate-50 rounded-lg p-2 border border-slate-100">
-                  <p className="text-[8px] uppercase text-slate-400 font-bold tracking-wide mb-0.5">Quantity</p>
+                  <p className="text-[8px] uppercase text-slate-400 font-bold tracking-wide mb-0.5">{t('quantity', 'Quantity')}</p>
                   <p className="text-xs font-bold text-slate-800">{selectedLot.qty} {selectedLot.unit}</p>
                 </div>
                 <div className="bg-slate-50 rounded-lg p-2 border border-slate-100">
-                  <p className="text-[8px] uppercase text-slate-400 font-bold tracking-wide mb-0.5">Base Price</p>
+                  <p className="text-[8px] uppercase text-slate-400 font-bold tracking-wide mb-0.5">{t('base_price', 'Base Price')}</p>
                   <p className="text-xs font-bold text-slate-800">₹{Number(selectedLot.basePrice).toLocaleString()}</p>
                 </div>
                 <div className="bg-slate-50 rounded-lg p-2 border border-slate-100">
-                  <p className="text-[8px] uppercase text-slate-400 font-bold tracking-wide mb-0.5">Highest Bid</p>
+                  <p className="text-[8px] uppercase text-slate-400 font-bold tracking-wide mb-0.5">{t('highest_bid', 'Highest Bid')}</p>
                   <p className="text-xs font-bold text-emerald-600">
-                    {selectedLot.highestBid > 0 ? `₹${Number(selectedLot.highestBid).toLocaleString()}` : 'N/A'}
+                    {selectedLot.highestBid > 0 ? `₹${Number(selectedLot.highestBid).toLocaleString()}` : t('na', 'N/A')}
                   </p>
                 </div>
                 <div className="bg-slate-50 rounded-lg p-2 border border-slate-100">
-                  <p className="text-[8px] uppercase text-slate-400 font-bold tracking-wide mb-0.5">Total Bids</p>
+                  <p className="text-[8px] uppercase text-slate-400 font-bold tracking-wide mb-0.5">{t('total_bids', 'Total Bids')}</p>
                   <p className="text-xs font-bold text-slate-800">{selectedLot.totalBids}</p>
                 </div>
                 <div className="bg-slate-50 rounded-lg p-2 border border-slate-100 col-span-2">
-                  <p className="text-[8px] uppercase text-slate-400 font-bold tracking-wide mb-0.5">Lot Status</p>
+                  <p className="text-[8px] uppercase text-slate-400 font-bold tracking-wide mb-0.5">{t('lot_status', 'Lot Status')}</p>
                   <p className="text-xs font-bold text-slate-800 uppercase">{selectedLot.lotStatus || '—'}</p>
                 </div>
               </div>
@@ -497,11 +510,11 @@ export const LiveAuctionsPage: React.FC<LiveAuctionsPageProps> = ({ onJoinAuctio
               {/* Times */}
               <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-100 space-y-1">
                 <div className="flex justify-between text-[11px]">
-                  <span className="text-slate-400 font-semibold">Start</span>
+                  <span className="text-slate-400 font-semibold">{t('start', 'Start')}</span>
                   <span className="font-bold text-slate-700">{formatDateTimeWithSeconds(selectedLot.startDate)}</span>
                 </div>
                 <div className="flex justify-between text-[11px]">
-                  <span className="text-slate-400 font-semibold">End</span>
+                  <span className="text-slate-400 font-semibold">{t('end', 'End')}</span>
                   <span className="font-bold text-slate-700">{formatDateTimeWithSeconds(selectedLot.endDate)}</span>
                 </div>
               </div>
@@ -513,7 +526,7 @@ export const LiveAuctionsPage: React.FC<LiveAuctionsPageProps> = ({ onJoinAuctio
                     onClick={() => { onJoinAuction(selectedLot); setSelectedLot(null); }}
                     className="flex-1 bg-[#1b4d4f] hover:bg-[#123637] text-white text-xs font-bold py-2 rounded-lg transition shadow"
                   >
-                    Join Auction →
+                    {t('join_auction', 'Join Auction')} →
                   </button>
                 ) : selectedLot.isUpcoming ? (
                   <button
@@ -525,21 +538,21 @@ export const LiveAuctionsPage: React.FC<LiveAuctionsPageProps> = ({ onJoinAuctio
                         : 'bg-white hover:bg-slate-50 text-[#1b4d4f] border-[#1b4d4f]'
                     }`}
                   >
-                    {reminders[selectedLot.lotId] ? '✓ Reminder Set' : 'Set Reminder'}
+                    {reminders[selectedLot.lotId] ? t('reminder_set', '✓ Reminder Set') : t('set_reminder', 'Set Reminder')}
                   </button>
                 ) : (
                   <button
                     disabled
                     className="flex-1 bg-slate-100 text-slate-400 border border-slate-200 text-xs font-bold py-2 rounded-lg text-center cursor-not-allowed"
                   >
-                    Auction Ended
+                    {t('auction_ended', 'Auction Ended')}
                   </button>
                 )}
                 <button
                   onClick={() => setSelectedLot(null)}
                   className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg border border-slate-200 transition"
                 >
-                  Close
+                  {t('close', 'Close')}
                 </button>
               </div>
             </div>

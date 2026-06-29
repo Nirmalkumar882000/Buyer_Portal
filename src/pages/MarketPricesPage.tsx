@@ -20,18 +20,19 @@ interface PriceRow {
 export const MarketPricesPage: React.FC = () => {
   const { showToast } = useToast();
   const { t } = useTranslation();
-  const todayDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
+  // Set default to 2026-06-17 for demo purposes
+  const defaultDate = '2026-06-17';
 
   // Temp State (Unapplied filters)
-  const [tempDate, setTempDate] = useState<string>(todayDate);
+  const [tempDate, setTempDate] = useState<string>(defaultDate);
   const [tempDistrict, setTempDistrict] = useState<any>(null);
   const [tempMarket, setTempMarket] = useState<any>(null);
   const [tempCommodity, setTempCommodity] = useState<any>(null);
   const [tempVariety, setTempVariety] = useState<any>(null);
-  
+
   // Applied State (Triggers data fetch)
   const [appliedFilters, setAppliedFilters] = useState({
-    date: todayDate,
+    date: defaultDate,
     district: null as any,
     market: null as any,
     commodity: null as any,
@@ -80,7 +81,7 @@ export const MarketPricesPage: React.FC = () => {
       filterData.forEach((market: any) => {
         if (market.district_id) dists.set(market.district_id, market.district);
         if (market.market_id) {
-           mrkts.set(market.market_id, { name: market.market_name, district_id: market.district_id });
+          mrkts.set(market.market_id, { name: market.market_name, district_id: market.district_id });
         }
         market.products.forEach((product: any) => {
           if (product.product_id) prods.set(product.product_id, product.product_name);
@@ -96,9 +97,9 @@ export const MarketPricesPage: React.FC = () => {
     return {
       districts: Array.from(dists, ([id, name]) => ({ value: id.toString(), label: name })),
       allMarkets,
-      displayMarkets: tempDistrict?.value 
-          ? allMarkets.filter(m => m.district_id.toString() === tempDistrict.value) 
-          : allMarkets,
+      displayMarkets: tempDistrict?.value
+        ? allMarkets.filter(m => m.district_id.toString() === tempDistrict.value)
+        : allMarkets,
       commodities: Array.from(prods, ([id, name]) => ({ value: id.toString(), label: name })),
       varieties: Array.from(vars).map(name => ({ value: name, label: name }))
     };
@@ -106,17 +107,17 @@ export const MarketPricesPage: React.FC = () => {
 
   const formatDateTime = (dateString: string) => {
     const d = new Date(dateString);
-    return d.toLocaleString('en-GB', { 
-      day: '2-digit', month: '2-digit', year: 'numeric', 
-      hour: '2-digit', minute: '2-digit', hour12: true 
-    }).toUpperCase(); 
+    return d.toLocaleString('en-GB', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', hour12: true
+    }).toUpperCase();
   };
 
   const processedData = useMemo(() => {
     const flatPrices: PriceRow[] = [];
     let latestUpdate = '';
     const data = pricesResponse?.data || [];
-    
+
     data.forEach((market: any) => {
       market.products.forEach((product: any) => {
         product.varieties.forEach((variety: any) => {
@@ -125,7 +126,7 @@ export const MarketPricesPage: React.FC = () => {
 
           // Apply client-side variety filter since backend doesn't support variety_id
           if (appliedFilters.variety?.value && varietyName !== appliedFilters.variety.value) {
-             return;
+            return;
           }
 
           flatPrices.push({
@@ -138,7 +139,7 @@ export const MarketPricesPage: React.FC = () => {
             marketName: market.market_name,
             districtName: market.district
           });
-          
+
           if (!latestUpdate) latestUpdate = formattedDate;
         });
       });
@@ -165,18 +166,18 @@ export const MarketPricesPage: React.FC = () => {
     setDownloading(true);
     showToast(t('msg_downloading_csv', "Downloading today's prices CSV..."), 'info');
     const headers = [
-      t('table_district', 'District'), 
-      t('table_market', 'Market'), 
-      t('table_commodity', 'Commodity'), 
-      t('table_variety', 'Variety'), 
-      t('table_price', 'Price'), 
-      t('table_unit', 'Unit'), 
-      t('filter_date', 'Date'), 
+      t('table_district', 'District'),
+      t('table_market', 'Market'),
+      t('table_commodity', 'Commodity'),
+      t('table_variety', 'Variety'),
+      t('table_price', 'Price'),
+      t('table_unit', 'Unit'),
+      t('filter_date', 'Date'),
       t('table_last_updated', 'Last Updated')
     ];
     const csvContent = [
       headers.join(','),
-      ...processedData.flatPrices.map(item => 
+      ...processedData.flatPrices.map(item =>
         `"${item.districtName}","${item.marketName}","${item.commodity}","${item.variety}","${item.price}","${item.unit}","${item.date}","${item.updatedTime}"`
       )
     ].join('\n');
@@ -260,83 +261,83 @@ export const MarketPricesPage: React.FC = () => {
 
       <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-2xs">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
-            
-            <div className="lg:col-span-1">
-               <label className="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1.5">{t('filter_date', 'Date')}</label>
-               <input
-                 type="date"
-                 value={tempDate}
-                 onChange={(e) => setTempDate(e.target.value)}
-                 className="w-full h-[42px] px-3 border border-slate-300 rounded-md bg-white text-slate-700 text-[13px] font-semibold focus:border-[#1b4d4f] outline-none"
-               />
-            </div>
 
-            <div className="lg:col-span-1">
-               <label className="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1.5">{t('filter_district', 'District')}</label>
-               <Select 
-                 isClearable
-                 options={filterOptions.districts}
-                 value={tempDistrict}
-                 onChange={(val) => { setTempDistrict(val); setTempMarket(null); }}
-                 placeholder="All"
-                 styles={customSelectStyles}
-               />
-            </div>
+          <div className="lg:col-span-1">
+            <label className="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1.5">{t('filter_date', 'Date')}</label>
+            <input
+              type="date"
+              value={tempDate}
+              onChange={(e) => setTempDate(e.target.value)}
+              className="w-full h-[42px] px-3 border border-slate-300 rounded-md bg-white text-slate-700 text-[13px] font-semibold focus:border-[#1b4d4f] outline-none"
+            />
+          </div>
 
-            <div className="lg:col-span-1">
-               <label className="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1.5">{t('filter_market', 'Market')}</label>
-               <Select 
-                 isClearable
-                 options={filterOptions.displayMarkets}
-                 value={tempMarket}
-                 onChange={(val) => setTempMarket(val)}
-                 placeholder="All"
-                 styles={customSelectStyles}
-               />
-            </div>
+          <div className="lg:col-span-1">
+            <label className="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1.5">{t('filter_district', 'District')}</label>
+            <Select
+              isClearable
+              options={filterOptions.districts}
+              value={tempDistrict}
+              onChange={(val) => { setTempDistrict(val); setTempMarket(null); }}
+              placeholder="All"
+              styles={customSelectStyles}
+            />
+          </div>
 
-            <div className="lg:col-span-1">
-               <label className="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1.5">{t('filter_commodity', 'Commodity')}</label>
-               <Select 
-                 isClearable
-                 options={filterOptions.commodities}
-                 value={tempCommodity}
-                 onChange={(val) => setTempCommodity(val)}
-                 placeholder="All"
-                 styles={customSelectStyles}
-               />
-            </div>
+          <div className="lg:col-span-1">
+            <label className="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1.5">{t('filter_market', 'Market')}</label>
+            <Select
+              isClearable
+              options={filterOptions.displayMarkets}
+              value={tempMarket}
+              onChange={(val) => setTempMarket(val)}
+              placeholder="All"
+              styles={customSelectStyles}
+            />
+          </div>
 
-            <div className="lg:col-span-1">
-               <label className="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1.5">{t('filter_variety', 'Variety')}</label>
-               <Select 
-                 isClearable
-                 options={filterOptions.varieties}
-                 value={tempVariety}
-                 onChange={(val) => setTempVariety(val)}
-                 placeholder="All"
-                 styles={customSelectStyles}
-               />
-            </div>
+          <div className="lg:col-span-1">
+            <label className="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1.5">{t('filter_commodity', 'Commodity')}</label>
+            <Select
+              isClearable
+              options={filterOptions.commodities}
+              value={tempCommodity}
+              onChange={(val) => setTempCommodity(val)}
+              placeholder="All"
+              styles={customSelectStyles}
+            />
+          </div>
 
-            <div className="lg:col-span-1 flex gap-2">
-              <button
-                onClick={handleApplyFilter}
-                className="flex-1 h-[42px] bg-[#1b4d4f] hover:bg-[#123637] text-white text-[13px] font-bold rounded-md shadow-xs transition cursor-pointer flex items-center justify-center gap-1.5"
-              >
-                ⚙ {t('btn_filter', 'Filter')}
-              </button>
-            </div>
-        </div>
-        
-        <div className="mt-4 pt-4 border-t border-slate-100 flex justify-end">
+          <div className="lg:col-span-1">
+            <label className="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1.5">{t('filter_variety', 'Variety')}</label>
+            <Select
+              isClearable
+              options={filterOptions.varieties}
+              value={tempVariety}
+              onChange={(val) => setTempVariety(val)}
+              placeholder="All"
+              styles={customSelectStyles}
+            />
+          </div>
+
+          <div className="lg:col-span-1 flex gap-2">
             <button
-              onClick={handleDownloadCSV}
-              disabled={downloading}
-              className="px-4 py-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-[13px] font-bold rounded-md shadow-2xs flex items-center gap-2 transition cursor-pointer"
+              onClick={handleApplyFilter}
+              className="flex-1 h-[42px] bg-[#1b4d4f] hover:bg-[#123637] text-white text-[13px] font-bold rounded-md shadow-xs transition cursor-pointer flex items-center justify-center gap-1.5"
             >
-              {downloading ? `⏳ ${t('btn_preparing', 'Preparing...')}` : `📊 ${t('btn_download_prices', "Download Today's Prices")}`}
+              ⚙ {t('btn_filter', 'Filter')}
             </button>
+          </div>
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-slate-100 flex justify-end">
+          <button
+            onClick={handleDownloadCSV}
+            disabled={downloading}
+            className="px-4 py-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-[13px] font-bold rounded-md shadow-2xs flex items-center gap-2 transition cursor-pointer"
+          >
+            {downloading ? `⏳ ${t('btn_preparing', 'Preparing...')}` : `📊 ${t('btn_download_prices', "Download Today's Prices")}`}
+          </button>
         </div>
       </div>
 

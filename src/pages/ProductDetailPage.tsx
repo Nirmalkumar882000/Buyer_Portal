@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getMarketLotView } from '../api/markets';
 import { AgriLoader } from '../components/AgriLoader';
 import { useAuth } from '../context/AuthContext';
@@ -15,6 +16,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   onBackToMarketplace,
   onBuyNow,
 }) => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const lotId = searchParams.get('lotId');
   const agentId = searchParams.get('agentId');
@@ -60,7 +62,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return showToast("Please log in to purchase.", "error");
+    if (!user) return showToast(t('err_login_purchase', 'Please log in to purchase.'), "error");
 
     try {
       setBuying(true);
@@ -86,7 +88,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       });
 
       if (res.data?.success) {
-        showToast("Purchase completed successfully!", "success");
+        showToast(t('success_purchase', 'Purchase completed successfully!'), "success");
         onBuyNow({
           productName: productData.product_name || productData.product || 'Product',
           qty,
@@ -95,18 +97,18 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           success: true
         });
       } else {
-        showToast(res.data?.message || "Failed to complete purchase.", "error");
+        showToast(res.data?.message || t('err_failed_purchase', 'Failed to complete purchase.'), "error");
       }
     } catch (err: any) {
       console.error(err);
-      showToast(err.response?.data?.message || "Failed to complete purchase. Product may already be sold.", "error");
+      showToast(err.response?.data?.message || t('err_failed_purchase_sold', 'Failed to complete purchase. Product may already be sold.'), "error");
     } finally {
       setBuying(false);
     }
   };
 
   if (loading) {
-    return <div className="py-20 flex justify-center"><AgriLoader message="Loading details..." inline /></div>;
+    return <div className="py-20 flex justify-center"><AgriLoader message={t('loading_details', 'Loading details...')} inline /></div>;
   }
 
   const productName = productData.product_name || productData.product || 'Product';
@@ -118,7 +120,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     <div className="space-y-6 font-sans">
       {/* Breadcrumbs */}
       <div className="text-xs text-slate-400 font-medium">
-        <button onClick={onBackToMarketplace} className="hover:text-slate-600 underline">Marketplace</button>
+        <button onClick={onBackToMarketplace} className="hover:text-slate-600 underline">{t('marketplace', 'Marketplace')}</button>
         <span className="mx-1.5">&rsaquo;</span>
         <button onClick={onBackToMarketplace} className="hover:text-slate-600 underline">{productName}</button>
         <span className="mx-1.5">&rsaquo;</span>
@@ -145,7 +147,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 <h2 className="text-lg font-bold text-slate-800">{productName}</h2>
                 <div className="flex gap-1.5">
                   <span className="bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-bold px-2.5 py-0.5 rounded-sm">
-                    Direct Sale
+                    {t('direct_sale', 'Direct Sale')}
                   </span>
                 </div>
               </div>
@@ -158,11 +160,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
             <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-700">
               <div className="space-y-0.5">
-                <span className="text-[10px] text-slate-400 font-normal block">Available Qty</span>
+                <span className="text-[10px] text-slate-400 font-normal block">{t('available_qty', 'Available Qty')}</span>
                 <span>{productData.lot_qty || '-'} {productData.lot_unit || 'kg'}</span>
               </div>
               <div className="space-y-0.5 col-span-2">
-                <span className="text-[10px] text-slate-400 font-normal block">Seller</span>
+                <span className="text-[10px] text-slate-400 font-normal block">{t('seller', 'Seller')}</span>
                 <span>{sellerName}</span>
               </div>
             </div>
@@ -170,19 +172,19 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             <hr className="border-slate-100" />
 
             <p className="text-xs text-slate-500 leading-relaxed">
-              Product sourced via verified agent platform. Fixed price direct sale.
+              {t('product_sourced_verified', 'Product sourced via verified agent platform. Fixed price direct sale.')}
             </p>
           </div>
         </div>
 
         {/* Right Column (Checkout / Order widgets) */}
         <div className="lg:col-span-5 bg-white border border-slate-200 rounded-lg p-6 shadow-xs space-y-5">
-          <h3 className="text-sm font-bold text-slate-800">Order Details</h3>
+          <h3 className="text-sm font-bold text-slate-800">{t('order_details', 'Order Details')}</h3>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Quantity Selector */}
             <div className="flex flex-col gap-2">
-              <label className="text-[10px] font-bold text-slate-450 uppercase tracking-wide">Fixed Lot Quantity</label>
+              <label className="text-[10px] font-bold text-slate-450 uppercase tracking-wide">{t('fixed_lot_quantity', 'Fixed Lot Quantity')}</label>
               <div className="flex items-center gap-2">
                 <div className="w-full h-10 px-3 border border-slate-350 bg-slate-50 rounded-md flex items-center text-sm font-bold text-slate-800">
                   {qty.toLocaleString()} {productData.lot_unit || ''}
@@ -193,27 +195,27 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             {/* Calculations */}
             <div className="divide-y divide-slate-150 text-xs font-semibold text-slate-650">
               <div className="flex justify-between py-2.5">
-                <span>Lot Price ({qty.toLocaleString()} {productData.lot_unit || ''})</span>
+                <span>{t('lot_price', 'Lot Price')} ({qty.toLocaleString()} {productData.lot_unit || ''})</span>
                 <span>₹{unitPrice.toLocaleString()}</span>
               </div>
               <div className="flex justify-between py-2.5">
-                <span>Platform Fee</span>
+                <span>{t('platform_fee', 'Platform Fee')}</span>
                 <span>₹0</span>
               </div>
               <div className="flex justify-between py-3 text-sm font-bold text-[#1b4d4f]">
-                <span>Total</span>
+                <span>{t('total', 'Total')}</span>
                 <span>₹{total.toLocaleString()}</span>
               </div>
             </div>
 
             {/* Payment method */}
             <div className="space-y-3">
-              <span className="text-[10px] font-bold text-slate-450 uppercase tracking-wide block">PAYMENT METHOD</span>
+              <span className="text-[10px] font-bold text-slate-450 uppercase tracking-wide block">{t('payment_method', 'PAYMENT METHOD')}</span>
               <div className="space-y-2">
                 <label onClick={() => setPaymentMethod('wallet')} className={`border rounded-lg p-3.5 flex items-center gap-3 cursor-pointer transition ${paymentMethod === 'wallet' ? 'border-[#1b4d4f] bg-[#e2f2f1]/40' : 'border-slate-200 bg-white hover:bg-slate-50/50'}`}>
                   <input type="radio" name="payment" checked={paymentMethod === 'wallet'} readOnly className="text-[#1b4d4f] focus:ring-[#1b4d4f]" />
                   <div className="text-xs font-semibold">
-                    <p className="text-slate-800">Wallet Balance</p>
+                    <p className="text-slate-800">{t('wallet_balance', 'Wallet Balance')}</p>
                   </div>
                 </label>
               </div>
@@ -226,7 +228,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 disabled={buying}
                 className="w-full bg-[#1b4d4f] hover:bg-[#123637] disabled:opacity-50 text-white text-xs font-bold py-3 rounded-md transition shadow-xs text-center"
               >
-                {buying ? 'Processing...' : `Buy Now — ₹${total.toLocaleString()}`}
+                {buying ? t('processing', 'Processing...') : `${t('buy_now', 'Buy Now — ₹')}${total.toLocaleString()}`}
               </button>
             </div>
           </form>

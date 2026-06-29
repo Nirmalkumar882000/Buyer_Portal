@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLiveRoom } from '../features/realtime/useLiveRoom';
 import { socketService } from '../features/realtime/socket';
 import { placeBuyerBid, getBidsList } from '../api/markets';
+import { useTranslation } from 'react-i18next';
 
 interface LiveBiddingPageProps {
   auction?: any; // The selected auction lot passed from route state
@@ -18,6 +19,7 @@ export const LiveBiddingPage: React.FC<LiveBiddingPageProps> = ({
 }) => {
   const { showToast } = useToast();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   // ── Buyer identity ─────────────────────────────────────────────────────────
   const rawBuyerUser = localStorage.getItem('buyer_user');
@@ -158,7 +160,7 @@ export const LiveBiddingPage: React.FC<LiveBiddingPageProps> = ({
     const tick = () => {
       const diff = new Date(auction.endDate).getTime() - Date.now();
       if (diff <= 0) {
-        setTimeLeft('Ended');
+        setTimeLeft(t('ended', 'Ended'));
         setAuctionEnded(true);
       } else {
         const h = Math.floor(diff / 3600000);
@@ -174,7 +176,7 @@ export const LiveBiddingPage: React.FC<LiveBiddingPageProps> = ({
     return () => clearInterval(t);
   }, [auction?.endDate]);
 
-  const isEnded = auctionEnded || timeLeft === 'Ended';
+  const isEnded = auctionEnded || timeLeft === t('ended', 'Ended');
 
   // ── Helpers ──────────────────────────────────────────────────────────────────
   const formatTime = (iso?: string) => {
@@ -185,19 +187,19 @@ export const LiveBiddingPage: React.FC<LiveBiddingPageProps> = ({
   // Top bidder display
   const topBid = mergedFeed[0];
   const topBidderLabel = topBid
-    ? (topBid.buyer_mobile_number === buyerMobile ? '🏆 You (Portal)' : `Buyer ****${String(topBid.buyer_mobile_number).slice(-2)}`)
-    : 'No bids yet';
+    ? (topBid.buyer_mobile_number === buyerMobile ? `🏆 ${t('you_portal', 'You (Portal)')}` : `Buyer ****${String(topBid.buyer_mobile_number).slice(-2)}`)
+    : t('no_bids_yet_short', 'No bids yet');
 
   return (
     <div className="space-y-5 font-sans">
       {/* Breadcrumb */}
       <div className="text-xs text-slate-400 font-medium flex items-center gap-1.5">
         <button onClick={onBackToAuctions} className="hover:text-[#1b4d4f] underline transition">
-          ← Auctions
+          ← {t('nav_auctions', 'Auctions')}
         </button>
         <span className="text-slate-300">/</span>
         <span className="text-slate-600 font-semibold">
-          Lot #{auction?.lotId || '—'} — Live Bidding
+          {t('lot_number', 'Lot #')}{auction?.lotId || '—'} — {t('live_bidding', 'Live Bidding')}
         </span>
       </div>
 
@@ -208,19 +210,19 @@ export const LiveBiddingPage: React.FC<LiveBiddingPageProps> = ({
             {auction?.productName || 'Product'}{auction?.varietyName ? ` — ${auction.varietyName}` : ''}
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Agent: <span className="font-semibold text-slate-700">{auction?.agentName || '—'}</span>
+            {t('agent', 'Agent:')} <span className="font-semibold text-slate-700">{auction?.agentName || '—'}</span>
             {auction?.categoryName && <> &bull; {auction.categoryName}</>}
           </p>
         </div>
         <div className="flex gap-2 items-center shrink-0 text-[10px] font-bold">
-          <span className="bg-[#1b4d4f] text-white px-3 py-1.5 rounded-sm tracking-wide">BUYER PORTAL</span>
+          <span className="bg-[#1b4d4f] text-white px-3 py-1.5 rounded-sm tracking-wide">{t('buyer_portal', 'BUYER PORTAL')}</span>
           {!isEnded ? (
             <span className="bg-red-500 text-white px-3 py-1.5 rounded-sm flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 bg-white rounded-full animate-ping" />
-              LIVE
+              {t('live', 'LIVE')}
             </span>
           ) : (
-            <span className="bg-slate-400 text-white px-3 py-1.5 rounded-sm">ENDED</span>
+            <span className="bg-slate-400 text-white px-3 py-1.5 rounded-sm">{t('ended', 'ENDED')}</span>
           )}
         </div>
       </div>
@@ -245,35 +247,35 @@ export const LiveBiddingPage: React.FC<LiveBiddingPageProps> = ({
           {/* Lot Details */}
           <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs space-y-3">
             <h3 className="text-xs font-bold text-slate-800 border-b border-slate-100 pb-2">
-              📦 Lot Details
+              {t('lot_details', '📦 Lot Details')}
             </h3>
             <div className="space-y-2 text-[11px] text-slate-600">
               <div className="flex justify-between">
-                <span className="text-slate-400">Lot #</span>
+                <span className="text-slate-400">{t('lot_number_short', 'Lot #')}</span>
                 <span className="font-bold text-slate-800">{auction?.lotId || '—'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Agent</span>
+                <span className="text-slate-400">{t('agent_short', 'Agent')}</span>
                 <span className="font-semibold text-slate-700 text-right max-w-[120px] truncate">{auction?.agentName || '—'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Category</span>
+                <span className="text-slate-400">{t('category', 'Category')}</span>
                 <span className="font-semibold">{auction?.categoryName || '—'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Variety</span>
+                <span className="text-slate-400">{t('variety', 'Variety')}</span>
                 <span className="font-semibold">{auction?.varietyName || '—'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Quantity</span>
+                <span className="text-slate-400">{t('quantity', 'Quantity')}</span>
                 <span className="font-semibold">{auction?.qty} {auction?.unit}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Grade</span>
+                <span className="text-slate-400">{t('grade', 'Grade')}</span>
                 <span className="font-semibold">{auction?.grade || '—'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Base Price</span>
+                <span className="text-slate-400">{t('base_price', 'Base Price')}</span>
                 <span className="font-bold text-[#1b4d4f]">₹{Number(auction?.basePrice).toLocaleString()}/{auction?.unit}</span>
               </div>
             </div>
@@ -281,36 +283,36 @@ export const LiveBiddingPage: React.FC<LiveBiddingPageProps> = ({
             {/* Time info */}
             <div className="bg-slate-50 border border-slate-100 rounded-md p-2.5 space-y-1 text-[10px]">
               <div className="flex justify-between">
-                <span className="text-slate-400 font-semibold">Start</span>
+                <span className="text-slate-400 font-semibold">{t('start', 'Start')}</span>
                 <span className="font-bold text-slate-700">{formatTime(auction?.startDate)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400 font-semibold">End</span>
+                <span className="text-slate-400 font-semibold">{t('end', 'End')}</span>
                 <span className={`font-bold ${isEnded ? 'text-red-500' : 'text-slate-700'}`}>{formatTime(auction?.endDate)}</span>
               </div>
             </div>
 
             <div className="bg-amber-50 border border-amber-100 p-2.5 rounded-md text-[10px] text-amber-700 leading-relaxed">
-              <strong>△ Wallet Escrow:</strong> Your bid amount will be held in escrow and released immediately if you are outbid.
+              <strong>△ {t('wallet_escrow', 'Wallet Escrow')}:</strong> {t('wallet_escrow_warning', 'Your bid amount will be held in escrow and released immediately if you are outbid.')}
             </div>
           </div>
 
           {/* Wallet */}
           <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs space-y-3">
-            <h3 className="text-xs font-bold text-slate-800 border-b border-slate-100 pb-2">💳 Your Wallet</h3>
+            <h3 className="text-xs font-bold text-slate-800 border-b border-slate-100 pb-2">💳 {t('your_wallet', 'Your Wallet')}</h3>
             <div>
-              <span className="text-[10px] text-slate-400 font-semibold block">Available Balance</span>
+              <span className="text-[10px] text-slate-400 font-semibold block">{t('available_balance', 'Available Balance')}</span>
               <p className="text-2xl font-black text-slate-800 mt-0.5">
                 {walletAvailable !== null ? `₹${walletAvailable.toLocaleString()}` : '—'}
               </p>
               {walletOnHold > 0 && (
                 <p className="text-[10px] text-orange-500 font-semibold mt-1">
-                  ₹{walletOnHold.toLocaleString()} on hold
+                  ₹{walletOnHold.toLocaleString()} {t('on_hold', 'on hold')}
                 </p>
               )}
             </div>
             <button className="w-full bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-bold py-2 rounded-md transition">
-              + Top Up Wallet
+              {t('top_up_wallet', '+ Top Up Wallet')}
             </button>
           </div>
         </div>
@@ -320,7 +322,7 @@ export const LiveBiddingPage: React.FC<LiveBiddingPageProps> = ({
 
           {/* Current Highest Bid Card */}
           <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs text-center space-y-3">
-            <span className="text-[10px] font-bold text-slate-400 tracking-wider block">CURRENT HIGHEST BID</span>
+            <span className="text-[10px] font-bold text-slate-400 tracking-wider block">{t('current_highest_bid', 'CURRENT HIGHEST BID')}</span>
             <div className="text-4xl font-black text-emerald-600 tracking-tight">
               ₹ {serverHighest.toLocaleString()}
               <span className="text-sm font-semibold text-slate-400">/{auction?.unit}</span>
@@ -330,13 +332,13 @@ export const LiveBiddingPage: React.FC<LiveBiddingPageProps> = ({
             {/* Timer + Total bids */}
             <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-100">
               <div>
-                <span className="text-[9px] font-bold text-slate-400 tracking-wide block">TIME LEFT</span>
+                <span className="text-[9px] font-bold text-slate-400 tracking-wide block">{t('time_left_caps', 'TIME LEFT')}</span>
                 <div className={`text-2xl font-bold mt-1 ${isEnded ? 'text-slate-400' : 'text-red-500'}`}>
                   {timeLeft}
                 </div>
               </div>
               <div>
-                <span className="text-[9px] font-bold text-slate-400 tracking-wide block">TOTAL BIDS</span>
+                <span className="text-[9px] font-bold text-slate-400 tracking-wide block">{t('total_bids_caps', 'TOTAL BIDS')}</span>
                 <div className="text-2xl font-bold text-slate-800 mt-1">
                   {loadingBids ? '…' : mergedFeed.length}
                 </div>
@@ -349,8 +351,8 @@ export const LiveBiddingPage: React.FC<LiveBiddingPageProps> = ({
             {/* Your bid display */}
             <div>
               <label className="text-[10px] font-bold text-slate-400 tracking-wide block mb-1.5">
-                YOUR BID &nbsp;
-                <span className="text-slate-500 font-normal">(min: ₹{(serverHighest + 100).toLocaleString()}/{auction?.unit})</span>
+                {t('your_bid_caps', 'YOUR BID')} &nbsp;
+                <span className="text-slate-500 font-normal">({t('min_bid', 'min:')} ₹{(serverHighest + 100).toLocaleString()}/{auction?.unit})</span>
               </label>
               <div className="flex items-center gap-2">
                 <button
@@ -382,7 +384,7 @@ export const LiveBiddingPage: React.FC<LiveBiddingPageProps> = ({
 
             {/* Total if won */}
             <p className="text-[10px] text-slate-400 font-medium text-center">
-              Total if won:{' '}
+              {t('total_if_won', 'Total if won:')}{' '}
               <span className="text-slate-700 font-bold">
                 ₹{(yourBid * Number(auction?.qty || 0)).toLocaleString()}
               </span>
@@ -396,15 +398,15 @@ export const LiveBiddingPage: React.FC<LiveBiddingPageProps> = ({
               className="w-full bg-[#1b4d4f] hover:bg-[#123637] disabled:bg-slate-200 disabled:text-slate-400 text-white text-sm font-bold py-3 rounded-lg shadow-sm transition flex items-center justify-center gap-2"
             >
               {isEnded
-                ? '🔒 Auction Ended'
+                ? `🔒 ${t('auction_ended_btn', 'Auction Ended')}`
                 : submitting
-                  ? '⏳ Placing Bid…'
-                  : `🔨 Place Bid — ₹${yourBid.toLocaleString()}/${auction?.unit}`}
+                  ? `⏳ ${t('placing_bid', 'Placing Bid…')}`
+                  : `🔨 ${t('place_bid', 'Place Bid')} — ₹${yourBid.toLocaleString()}/${auction?.unit}`}
             </button>
 
             {yourBid <= serverHighest && !isEnded && (
               <p className="text-[10px] text-red-500 font-semibold text-center">
-                ⚠ Bid must exceed current highest bid of ₹{serverHighest.toLocaleString()}
+                {t('bid_must_exceed', '⚠ Bid must exceed current highest bid of ₹')}{serverHighest.toLocaleString()}
               </p>
             )}
           </div>
@@ -414,20 +416,20 @@ export const LiveBiddingPage: React.FC<LiveBiddingPageProps> = ({
         <div className="lg:col-span-4 bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
           {/* Header */}
           <div className="flex justify-between items-center px-4 py-3 border-b border-slate-100">
-            <h3 className="text-xs font-bold text-slate-800">Live Bid Feed</h3>
+            <h3 className="text-xs font-bold text-slate-800">{t('live_bid_feed', 'Live Bid Feed')}</h3>
             <div className="flex items-center gap-2">
               {loadingBids && (
-                <span className="text-[9px] text-slate-400">Refreshing…</span>
+                <span className="text-[9px] text-slate-400">{t('refreshing', 'Refreshing…')}</span>
               )}
               <button
                 onClick={fetchBidsHistory}
                 className="text-[9px] text-[#1b4d4f] hover:underline font-bold"
               >
-                Refresh
+                {t('refresh', 'Refresh')}
               </button>
               <span className="text-[9px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded-sm font-bold flex items-center gap-0.5">
                 <span className="w-1 h-1 bg-red-500 rounded-full animate-ping" />
-                LIVE
+                {t('live', 'LIVE')}
               </span>
             </div>
           </div>
@@ -436,7 +438,7 @@ export const LiveBiddingPage: React.FC<LiveBiddingPageProps> = ({
           <div className="divide-y divide-slate-50 max-h-96 overflow-y-auto">
             {mergedFeed.length === 0 ? (
               <div className="py-10 text-center text-slate-400 text-xs">
-                {loadingBids ? 'Loading bids…' : 'No bids yet. Be the first!'}
+                {loadingBids ? t('loading_bids', 'Loading bids…') : t('no_bids_yet', 'No bids yet. Be the first!')}
               </div>
             ) : (
               mergedFeed.map((entry, idx) => {
@@ -451,15 +453,15 @@ export const LiveBiddingPage: React.FC<LiveBiddingPageProps> = ({
                   >
                     <div className="space-y-0.5 flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        {isTop && <span className="text-[8px] text-amber-600 font-extrabold">🏆 TOP</span>}
+                        {isTop && <span className="text-[8px] text-amber-600 font-extrabold">🏆 {t('top', 'TOP')}</span>}
                         <span className={`font-semibold truncate ${isMe ? 'text-[#1b4d4f]' : 'text-slate-700'}`}>
-                          {isMe ? 'You (Portal)' : entry.buyer_name || `Buyer ****${String(entry.buyer_mobile_number).slice(-2)}`}
+                          {isMe ? t('you_portal', 'You (Portal)') : entry.buyer_name || `Buyer ****${String(entry.buyer_mobile_number).slice(-2)}`}
                         </span>
                         {entry.isSocket && (
-                          <span className="bg-blue-100 text-blue-600 text-[7px] font-extrabold px-1 rounded-sm">LIVE</span>
+                          <span className="bg-blue-100 text-blue-600 text-[7px] font-extrabold px-1 rounded-sm">{t('live', 'LIVE')}</span>
                         )}
                         {entry.isPortal && (
-                          <span className="bg-teal-100 text-teal-700 text-[7px] font-extrabold px-1 rounded-sm">Portal</span>
+                          <span className="bg-teal-100 text-teal-700 text-[7px] font-extrabold px-1 rounded-sm">{t('portal', 'Portal')}</span>
                         )}
                       </div>
                       <p className="text-[9px] text-slate-400">{formatTime(entry.bid_time)}</p>
@@ -474,7 +476,7 @@ export const LiveBiddingPage: React.FC<LiveBiddingPageProps> = ({
           </div>
 
           <div className="px-4 py-2 border-t border-slate-100 text-[9px] text-slate-400 text-center leading-relaxed">
-            Your bids shown in teal. Socket live bids tagged LIVE. Top bid highlighted in green.
+            {t('your_bids_green', 'Your bids shown in teal. Socket live bids happen LIVE. Top bid highlighted in green.')}
           </div>
         </div>
       </div>

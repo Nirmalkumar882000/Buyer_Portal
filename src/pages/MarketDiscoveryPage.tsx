@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../components/Button';
 import { Select } from '../components/Select';
 import { getAgentMarkets } from '../api/markets';
@@ -10,6 +11,7 @@ interface MarketDiscoveryPageProps {
 }
 
 export const MarketDiscoveryPage: React.FC<MarketDiscoveryPageProps> = ({ onBrowseAgents }) => {
+  const { t } = useTranslation();
   const [searchString, setSearchString] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
@@ -41,14 +43,14 @@ export const MarketDiscoveryPage: React.FC<MarketDiscoveryPageProps> = ({ onBrow
     <div className="space-y-6">
       {/* Breadcrumb */}
       <div className="text-xs text-slate-400 font-medium">
-        Home &rsaquo; <span className="text-slate-500 font-semibold">Markets</span>
+        {t('home', 'Home')} &rsaquo; <span className="text-slate-500 font-semibold">{t('nav_markets', 'Markets')}</span>
       </div>
 
       {/* Screen Title */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">Market Discovery</h1>
+        <h1 className="text-2xl font-bold text-slate-800">{t('market_discovery', 'Market Discovery')}</h1>
         <p className="text-xs text-slate-500 mt-1">
-          Browse APMC markets across India. Find agents and live auctions.
+          {t('market_discovery_desc', 'Browse APMC markets across India. Find agents and live auctions.')}
         </p>
       </div>
 
@@ -57,7 +59,7 @@ export const MarketDiscoveryPage: React.FC<MarketDiscoveryPageProps> = ({ onBrow
         <div className="w-full md:w-80 lg:w-96 shrink-0">
           <input
             type="text"
-            placeholder="Search markets..."
+            placeholder={t('search_markets', 'Search markets...')}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -69,7 +71,7 @@ export const MarketDiscoveryPage: React.FC<MarketDiscoveryPageProps> = ({ onBrow
             value={selectedDistrict}
             onChange={(e) => setSelectedDistrict(e.target.value)}
             options={[
-              { value: '', label: 'All Districts' },
+              { value: '', label: t('all_districts', 'All Districts') },
               ...uniqueDistricts.map((d: any) => ({ value: d, label: d }))
             ]}
           />
@@ -79,18 +81,18 @@ export const MarketDiscoveryPage: React.FC<MarketDiscoveryPageProps> = ({ onBrow
             value={selectedProduct}
             onChange={(e) => setSelectedProduct(e.target.value)}
             options={[
-              { value: '', label: 'All Commodities' },
+              { value: '', label: t('all_commodities', 'All Commodities') },
               ...uniqueCommodities.map((c: any) => ({ value: c, label: c }))
             ]}
           />
         </div>
         <Button onClick={handleSearch} variant="primary" className="w-full md:w-auto shrink-0 flex items-center justify-center gap-1.5 py-2">
-          <span>🔍</span> Search
+          <span>🔍</span> {t('search', 'Search')}
         </Button>
       </div>
 
       <div className="text-xs text-slate-400 font-medium">
-        {isLoading ? 'Loading markets...' : `Showing ${markets.length} markets in Tamil Nadu`}
+        {isLoading ? t('loading_markets', 'Loading markets...') : `${t('showing', 'Showing')} ${markets.length} ${t('markets_in_tn', 'markets in Tamil Nadu')}`}
       </div>
 
       {/* Main discovery area */}
@@ -100,33 +102,33 @@ export const MarketDiscoveryPage: React.FC<MarketDiscoveryPageProps> = ({ onBrow
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {isLoading ? (
               <div className="col-span-full py-4">
-                <AgriLoader message="Loading markets..." />
+                <AgriLoader message={t('loading_markets', 'Loading markets...')} />
               </div>
             ) : markets.length === 0 ? (
-              <div className="col-span-full py-10 text-center text-slate-500 font-medium">No markets found.</div>
+              <div className="col-span-full py-10 text-center text-slate-500 font-medium">{t('no_markets_found', 'No markets found.')}</div>
             ) : (
               markets.map((market: any, idx: number) => (
                 <div key={idx} className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs flex flex-col justify-between gap-4">
                   <div className="space-y-3">
                     <div className="flex justify-between items-start gap-4">
                       <div>
-                        <h4 className="text-sm font-bold text-slate-800">{market.district} APMC</h4>
-                        <p className="text-[10px] text-slate-400 mt-0.5">📍 {market.district}, Tamil Nadu</p>
+                        <h4 className="text-sm font-bold text-slate-800">{market.district}</h4>
+                        <p className="text-[10px] text-slate-400 mt-0.5">📍 {market.district}{t('tamil_nadu', ', Tamil Nadu')}</p>
                       </div>
                       <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800`}>
-                        Active
+                        {t('active', 'Active')}
                       </span>
                     </div>
 
                     <div className="grid grid-cols-3 gap-2 py-1 text-[11px] font-medium text-slate-600 border-t border-b border-slate-50">
                       <div>
-                        <span className="text-slate-400">👤</span> {market.total_agents} Agents
+                        <span className="text-slate-400">👤</span> {market.total_agents} {t('agents', 'Agents')}
                       </div>
                       <div>
-                        <span className="text-slate-400">📦</span> {market.active_lots} Active Lots
+                        <span className="text-slate-400">📦</span> {market.active_lots} {t('active_lots', 'Active Lots')}
                       </div>
                       <div className="col-span-1 text-slate-500 font-semibold truncate" title={market.products?.join(', ')}>
-                        🌾 {market.products?.join(', ') || 'No Commodities'}
+                        🌾 {market.products?.join(', ') || t('no_commodities', 'No Commodities')}
                       </div>
                     </div>
                   </div>
@@ -135,7 +137,7 @@ export const MarketDiscoveryPage: React.FC<MarketDiscoveryPageProps> = ({ onBrow
                     onClick={() => onBrowseAgents(market.district)}
                     className={`w-full text-center py-2 rounded-md text-xs font-bold transition-all duration-200 bg-[#1b4d4f] hover:bg-[#13383a] text-white`}
                   >
-                    Browse Agents
+                    {t('browse_agents', 'Browse Agents')}
                   </button>
                 </div>
               ))

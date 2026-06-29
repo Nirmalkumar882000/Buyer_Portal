@@ -14,18 +14,18 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ formData, onLogout
   const { t } = useTranslation();
 
   const recentPurchases = [
-    { product: 'Paddy (Grade A)', qty: '5 MT', amount: '₹94,860', status: 'Delivered', statusColor: 'bg-emerald-100 text-emerald-800' },
-    { product: 'Groundnut', qty: '500 kg', amount: '₹26,000', status: 'In Transit', statusColor: 'bg-amber-100 text-amber-800' },
-    { product: 'Onion (Large)', qty: '1 MT', amount: '₹19,200', status: 'Processing', statusColor: 'bg-blue-100 text-blue-800' },
+    { product: t('dash_paddy', 'Paddy (Grade A)'), qty: '5 MT', amount: '₹94,860', status: t('dash_status_delivered', 'Delivered'), statusColor: 'bg-emerald-100 text-emerald-800' },
+    { product: t('dash_groundnut', 'Groundnut'), qty: '500 kg', amount: '₹26,000', status: t('dash_status_transit', 'In Transit'), statusColor: 'bg-amber-100 text-amber-800' },
+    { product: t('dash_onion', 'Onion (Large)'), qty: '1 MT', amount: '₹19,200', status: t('dash_status_processing', 'Processing'), statusColor: 'bg-blue-100 text-blue-800' },
   ];
   
   const { prices: livePrices } = useLivePrices();
 
   const notifications = [
-    { text: 'Auction Win! Paddy Lot #A-2294 — ₹94,860', time: '2 mins ago', dotColor: 'bg-slate-600' },
-    { text: 'Outbid on Onion Lot #A-2291. New high: ₹22,400', time: '18 mins ago', dotColor: 'bg-orange-500' },
-    { text: 'Agent Murugan (Trichy APMC) approved your request', time: '1 hour ago', dotColor: 'bg-emerald-500' },
-    { text: 'Groundnut delivery ETA today 4 PM', time: '3 hours ago', dotColor: 'bg-teal-500' },
+    { text: t('dash_notif_1', 'Auction Win! Paddy Lot #A-2294 — ₹94,860'), time: t('dash_time_2m', '2 mins ago'), dotColor: 'bg-slate-600' },
+    { text: t('dash_notif_2', 'Outbid on Onion Lot #A-2291. New high: ₹22,400'), time: t('dash_time_18m', '18 mins ago'), dotColor: 'bg-orange-500' },
+    { text: t('dash_notif_3', 'Agent Murugan (Trichy APMC) approved your request'), time: t('dash_time_1h', '1 hour ago'), dotColor: 'bg-emerald-500' },
+    { text: t('dash_notif_4', 'Groundnut delivery ETA today 4 PM'), time: t('dash_time_3h', '3 hours ago'), dotColor: 'bg-teal-500' },
   ];
 
   const Marquee = 'marquee' as any;
@@ -38,7 +38,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ formData, onLogout
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
             {t('good_morning', 'Good morning')}, {formData.fullName || 'Ravi Kumar'} <span className="animate-bounce">👋</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">Tuesday, 15 July 2025 | buyer.velaanbay.in</p>
+          <p className="text-xs text-slate-400 mt-1">{t('dash_date_mock', 'Tuesday, 15 July 2025 | buyer.velaanbay.in')}</p>
         </div>
         <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-md text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-xs">
           <span>🔔 {t('notifications', 'Notifications')}</span>
@@ -266,7 +266,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ formData, onLogout
       {/* Logout button in details view */}
       <div className="pt-6 border-t border-slate-200 flex justify-end">
         <Button variant="secondary" onClick={onLogout}>
-          Logout to Public Landing Page
+          {t('btn_logout', 'Logout to Public Landing Page')}
         </Button>
       </div>
     </div>

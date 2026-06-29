@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getMarketAndDirectSaleList, getMarkerSaleData } from '../api/markets';
 import { getCart, addToCart, removeFromCart } from '../api/cart';
 import { AgriLoader } from '../components/AgriLoader';
@@ -13,6 +14,7 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
   onBackToDashboard,
   onSelectProduct,
 }) => {
+  const { t } = useTranslation();
   const [cartCount, setCartCount] = useState(0);
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -53,19 +55,19 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
              const startDate = new Date(item.auction_start_date).toLocaleString(undefined, { 
                 month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
              });
-             qtyStr = qtyStr ? `${qtyStr} | Starts: ${startDate}` : `Starts: ${startDate}`;
+             qtyStr = qtyStr ? `${qtyStr} | ${t('starts', 'Starts')}: ${startDate}` : `${t('starts', 'Starts')}: ${startDate}`;
           } else if (item.status === 'LIVE' && item.auction_end_date) {
              const endDate = new Date(item.auction_end_date).toLocaleString(undefined, { 
                 month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
              });
-             qtyStr = qtyStr ? `${qtyStr} | Ends: ${endDate}` : `Ends: ${endDate}`;
+             qtyStr = qtyStr ? `${qtyStr} | ${t('ends', 'Ends')}: ${endDate}` : `${t('ends', 'Ends')}: ${endDate}`;
           } else if (qtyStr) {
-             qtyStr = `${qtyStr} available`;
+             qtyStr = `${qtyStr} ${t('available', 'available')}`;
           } else {
-             qtyStr = 'Available';
+             qtyStr = t('available', 'Available');
           }
 
-          const sellerStr = `Agent: ${item.agent_details?.name || item.agent_details?.shop_name || 'Unknown'} | ${item.agent_details?.district || ''}`;
+          const sellerStr = `${t('agent', 'Agent')}: ${item.agent_details?.name || item.agent_details?.shop_name || t('unknown', 'Unknown')} | ${item.agent_details?.district || ''}`;
           const displayName = item.variety ? `${item.product_name} (${item.variety})` : item.product_name;
 
           return {
@@ -74,10 +76,10 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
              lotId: item.lot_id,
              name: displayName,
              emoji,
-             grade: 'Market Sale',
+             grade: t('market_sale', 'Market Sale'),
              gradeColor: 'bg-blue-50 text-blue-700 border-blue-100',
              seller: sellerStr,
-             price: item.base_price ? `₹${item.base_price}` : 'Contact for price',
+             price: item.base_price ? `₹${item.base_price}` : t('contact_for_price', 'Contact for price'),
              qty: qtyStr,
              bg: 'bg-slate-50',
              status: item.status
@@ -146,16 +148,16 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
     <div className="space-y-6">
       {/* Breadcrumb */}
       <div className="text-xs text-slate-400 font-medium">
-        <button onClick={onBackToDashboard} className="hover:text-slate-600 underline">Home</button>
+        <button onClick={onBackToDashboard} className="hover:text-slate-600 underline">{t('home', 'Home')}</button>
         <span className="mx-1.5">&rsaquo;</span>
-        <span className="text-slate-500 font-semibold">Marketplace</span>
+        <span className="text-slate-500 font-semibold">{t('marketplace', 'Marketplace')}</span>
       </div>
 
       {/* Title & Cart Count */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Fixed Price Marketplace</h1>
-          <p className="text-xs text-slate-500 mt-1">Browse and buy agricultural produce at fixed prices</p>
+          <h1 className="text-2xl font-bold text-slate-800">{t('fixed_price_marketplace', 'Fixed Price Marketplace')}</h1>
+          <p className="text-xs text-slate-500 mt-1">{t('browse_buy_produce', 'Browse and buy agricultural produce at fixed prices')}</p>
         </div>
         {/* Cart feature temporarily disabled
         <button 
@@ -242,16 +244,16 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
             <div className="flex gap-2 w-full sm:max-w-xs">
               <input
                 type="text"
-                placeholder="Search products..."
+                placeholder={t('search_products', 'Search products...')}
                 className="w-full px-3.5 py-1.5 bg-white border border-slate-300 rounded-md text-xs text-slate-800 outline-hidden focus:border-[#1b4d4f]"
               />
             </div>
             <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto text-xs text-slate-400 font-medium">
               <select className="px-2.5 py-1.5 bg-white border border-slate-300 rounded-md outline-hidden text-slate-700">
-                <option>Sort: Newest</option>
-                <option>Price: Low to High</option>
+                <option>{t('sort_newest', 'Sort: Newest')}</option>
+                <option>{t('price_low_high', 'Price: Low to High')}</option>
               </select>
-              <span>Showing 24 products</span>
+              <span>{t('showing_24_products', 'Showing 24 products')}</span>
             </div>
           </div>
 
@@ -259,11 +261,11 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {loading ? (
               <div className="col-span-full py-12 flex justify-center items-center">
-                <AgriLoader message="Fetching fresh produce..." inline />
+                <AgriLoader message={t('fetching_fresh_produce', 'Fetching fresh produce...')} inline />
               </div>
             ) : products.length === 0 ? (
               <div className="col-span-full py-12 text-center text-slate-500">
-                No products found.
+                {t('no_products_found', 'No products found.')}
               </div>
             ) : (
               products.map((item, idx) => (
@@ -299,7 +301,7 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
                         disabled={item.status === 'UPCOMING'}
                         className={`w-full ${item.status === 'UPCOMING' ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-[#1b4d4f] hover:bg-[#123637] text-white'} text-[11px] font-bold py-2 rounded-md transition shadow-xs`}
                       >
-                        {item.status === 'UPCOMING' ? 'Upcoming Sale' : 'View Details'}
+                        {item.status === 'UPCOMING' ? t('upcoming_sale', 'Upcoming Sale') : t('view_details', 'View Details')}
                       </button>
                     </div>
                   </div>
@@ -324,7 +326,7 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsCartOpen(false)}></div>
           <div className="relative w-full max-w-sm bg-white h-full shadow-2xl flex flex-col animate-slide-left">
             <div className="p-4 bg-[#062920] flex justify-between items-center text-white">
-              <h2 className="text-lg font-bold flex items-center gap-2">🛒 Your Cart <span className="bg-emerald-500 text-[#062920] px-2 py-0.5 rounded-full text-xs">{cartCount}</span></h2>
+              <h2 className="text-lg font-bold flex items-center gap-2">🛒 {t('your_cart', 'Your Cart')} <span className="bg-emerald-500 text-[#062920] px-2 py-0.5 rounded-full text-xs">{cartCount}</span></h2>
               <button onClick={() => setIsCartOpen(false)} className="text-white hover:text-emerald-300 text-2xl leading-none">&times;</button>
             </div>
             
@@ -332,7 +334,7 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
               {cartItems.length === 0 ? (
                 <div className="text-center text-slate-400 py-16 space-y-4">
                   <div className="text-6xl opacity-50">🛒</div>
-                  <p className="font-semibold">Your cart is empty.</p>
+                  <p className="font-semibold">{t('cart_empty', 'Your cart is empty.')}</p>
                 </div>
               ) : (
                 mappedCartItems.map(item => {
@@ -354,7 +356,7 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
                             onClick={() => handleRemoveFromCart(Number(item.id))}
                             className="text-[10px] font-bold text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-1 rounded-md transition"
                           >
-                            Remove
+                            {t('remove', 'Remove')}
                           </button>
                         </div>
                       </div>
@@ -367,14 +369,14 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
             {cartItems.length > 0 && (
               <div className="p-4 border-t border-slate-200 bg-white shadow-lg space-y-3">
                 <div className="flex justify-between text-sm font-bold text-slate-800">
-                  <span>Total Items</span>
+                  <span>{t('total_items', 'Total Items')}</span>
                   <span>{cartCount}</span>
                 </div>
                 <button 
                   onClick={() => navigate('/checkout', { state: { cartItems: mappedCartItems } })}
                   className="w-full bg-[#062920] hover:bg-[#0b382d] text-white py-3.5 rounded-lg font-bold shadow-md transition-all text-sm flex items-center justify-center gap-2"
                 >
-                  Proceed to Checkout &rarr;
+                  {t('proceed_to_checkout', 'Proceed to Checkout')} &rarr;
                 </button>
               </div>
             )}

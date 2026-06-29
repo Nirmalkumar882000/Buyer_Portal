@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getDistrictAgents } from '../api/markets';
 import { AgriLoader } from '../components/AgriLoader';
 import { BackButton } from '../components/BackButton';
@@ -18,6 +19,7 @@ export const AgentDiscoveryPage: React.FC<AgentDiscoveryPageProps> = ({
   onViewProfile,
   marketName: propMarketName
 }) => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const marketName = propMarketName || searchParams.get('district') || 'Thoothukudi';
   const [searchInput, setSearchInput] = useState('');
@@ -48,20 +50,20 @@ export const AgentDiscoveryPage: React.FC<AgentDiscoveryPageProps> = ({
     <div className="space-y-6">
       {/* Breadcrumbs */}
       <div className="text-xs text-slate-400 font-medium">
-        <button onClick={onBackToMarkets} className="hover:text-slate-600 underline">Markets</button>
+        <button onClick={onBackToMarkets} className="hover:text-slate-600 underline">{t('nav_markets', 'Markets')}</button>
         <span className="mx-1.5">&rsaquo;</span>
         <span className="text-slate-400">{marketName}</span>
         <span className="mx-1.5">&rsaquo;</span>
-        <span className="text-slate-500 font-semibold">Agents</span>
+        <span className="text-slate-500 font-semibold">{t('nav_agents', 'Agents')}</span>
       </div>
 
       {/* Page Title */}
       <div className="flex items-center gap-3">
-        <BackButton onClick={onBackToMarkets} label="Markets" />
+        <BackButton onClick={onBackToMarkets} label={t('nav_markets', 'Markets')} />
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Mandi Agents — {marketName}</h1>
+          <h1 className="text-2xl font-bold text-slate-800">{t('mandi_agents', 'Mandi Agents')} — {marketName}</h1>
           <p className="text-xs text-slate-550 mt-1">
-            {isLoading ? 'Loading agents...' : `${agents.length} registered agents at this market. Register with an agent to access live auctions.`}
+            {isLoading ? t('loading_agents', 'Loading agents...') : `${agents.length} ${t('registered_agents_desc', 'registered agents at this market. Register with an agent to access live auctions.')}`}
           </p>
         </div>
       </div>
@@ -71,7 +73,7 @@ export const AgentDiscoveryPage: React.FC<AgentDiscoveryPageProps> = ({
         <div className="flex-1 w-full">
           <input
             type="text"
-            placeholder="Search agents..."
+            placeholder={t('search_agents', 'Search agents...')}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -84,7 +86,7 @@ export const AgentDiscoveryPage: React.FC<AgentDiscoveryPageProps> = ({
             onChange={(e) => setSelectedProduct(e.target.value)}
             className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm text-slate-800 outline-hidden transition-all duration-200 focus:border-[#1b4d4f] focus:ring-1 focus:ring-[#1b4d4f]"
           >
-            <option value="">All Commodities</option>
+            <option value="">{t('all_commodities', 'All Commodities')}</option>
             {availableCommodities.map((comm: any) => (
               <option key={comm.id} value={comm.id}>{comm.name}</option>
             ))}
@@ -92,8 +94,8 @@ export const AgentDiscoveryPage: React.FC<AgentDiscoveryPageProps> = ({
         </div>
         <div className="w-full md:w-48">
           <select className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm text-slate-800 outline-hidden transition-all duration-200 focus:border-[#1b4d4f] focus:ring-1 focus:ring-[#1b4d4f]">
-            <option>Sort: Rating &darr;</option>
-            <option>Sort: Popularity</option>
+            <option>{t('sort_rating', 'Sort: Rating ↓')}</option>
+            <option>{t('sort_popularity', 'Sort: Popularity')}</option>
           </select>
         </div>
         {(selectedProduct || searchString || searchInput) && (
@@ -105,7 +107,7 @@ export const AgentDiscoveryPage: React.FC<AgentDiscoveryPageProps> = ({
             }}
             className="text-xs text-red-600 hover:text-red-750 font-bold transition whitespace-nowrap px-2 py-2"
           >
-            Clear Filters
+            {t('clear_filters', 'Clear Filters')}
           </button>
         )}
       </div>
@@ -114,10 +116,10 @@ export const AgentDiscoveryPage: React.FC<AgentDiscoveryPageProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoading ? (
           <div className="col-span-full py-4">
-            <AgriLoader message="Loading agents..." />
+            <AgriLoader message={t('loading_agents', 'Loading agents...')} />
           </div>
         ) : agents.length === 0 ? (
-          <div className="col-span-full py-10 text-center text-slate-500 font-medium">No agents found.</div>
+          <div className="col-span-full py-10 text-center text-slate-500 font-medium">{t('no_agents_found_basic', 'No agents found.')}</div>
         ) : (
           agents.map((agent: any, idx: number) => {
           const ratingStars = '★'.repeat(Math.round(parseFloat(agent.rating))) + '☆'.repeat(5 - Math.round(parseFloat(agent.rating)));
@@ -153,12 +155,12 @@ export const AgentDiscoveryPage: React.FC<AgentDiscoveryPageProps> = ({
                 {/* Rating */}
                 <div className="text-[10px] text-slate-500 flex items-center justify-center gap-1 font-medium">
                   <span className="text-amber-400 text-xs">{ratingStars}</span>
-                  <span>({agent.rating} &bull; {agent.reviews} reviews)</span>
+                  <span>({agent.rating} &bull; {agent.reviews} {t('reviews', 'reviews')})</span>
                 </div>
 
                 {/* Specialties tags */}
                 <div className="flex justify-center gap-1.5 flex-wrap">
-                  {agent.specialties.map((tag, sIdx) => (
+                  {agent.specialties.map((tag: any, sIdx: number) => (
                     <span key={sIdx} className="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-sm font-semibold">
                       {tag}
                     </span>
@@ -167,9 +169,9 @@ export const AgentDiscoveryPage: React.FC<AgentDiscoveryPageProps> = ({
 
                 {/* Details Strip */}
                 <div className="bg-slate-50 border border-slate-100 rounded-md py-2 px-3 text-[10px] text-slate-600 flex justify-center gap-3 font-semibold">
-                  <span>⚖️ {agent.activeAuctions} active auctions</span>
+                  <span>⚖️ {agent.activeAuctions} {t('active_auctions', 'active auctions')}</span>
                   <span className="text-slate-300">|</span>
-                  <span>📦 {agent.lotsPerMonth} lots/month</span>
+                  <span>📦 {agent.lotsPerMonth} {t('lots_per_month', 'lots/month')}</span>
                 </div>
               </div>
 
@@ -177,12 +179,12 @@ export const AgentDiscoveryPage: React.FC<AgentDiscoveryPageProps> = ({
               <div className="w-full">
                 {agent.isRegistered ? (
                   <div className="space-y-3">
-                    <div className="text-[10px] text-emerald-600 font-bold">✓ Registered & Approved</div>
+                    <div className="text-[10px] text-emerald-600 font-bold">✓ {t('registered_approved', 'Registered & Approved')}</div>
                     <button
                       onClick={onViewAuctions}
                       className="w-full bg-[#1b4d4f] hover:bg-[#123637] text-white text-xs font-bold py-2.5 rounded-md transition shadow-xs"
                     >
-                      View Auctions
+                      {t('view_auctions', 'View Auctions')}
                     </button>
                   </div>
                 ) : (
@@ -191,13 +193,13 @@ export const AgentDiscoveryPage: React.FC<AgentDiscoveryPageProps> = ({
                       onClick={() => onViewProfile(agent.id)}
                       className="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-350 text-xs font-bold py-2 rounded-md transition"
                     >
-                      View Profile
+                      {t('view_profile', 'View Profile')}
                     </button>
                     <button 
                       onClick={() => onViewProfile(agent.id)}
                       className="w-full bg-[#1b4d4f] hover:bg-[#123637] text-white text-xs font-bold py-2 rounded-md transition shadow-xs"
                     >
-                      Register
+                      {t('register', 'Register')}
                     </button>
                   </div>
                 )}
