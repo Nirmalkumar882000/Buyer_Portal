@@ -29,8 +29,8 @@ export const getAgentMarkets = async (filters: MarketFilters): Promise<AgentMark
 };
 
 export const getDistrictAgents = async (district: string, searchString?: string, product?: string) => {
-  const { data } = await api.get('/buyer/district-agents', { 
-    params: { district, searchString, product } 
+  const { data } = await api.get('/buyer/district-agents', {
+    params: { district, searchString, product }
   });
   if (data?.data?.data && Array.isArray(data.data.data)) {
     return data.data;
@@ -131,4 +131,21 @@ export const getBuyerWallet = async () => {
   } catch {
     return { available: 0, on_hold: 0 };
   }
+};
+
+export const getMarketAndDirectSaleList = async (params: any = {}) => {
+  const { data } = await api.post('/buyer/market-direct-sales', params);
+  return data?.data || data;
+};
+
+export const getMarkerSaleData = async (params: any = {}) => {
+  const { data } = await api.post('/buyer/market-sale-data', params);
+  return data?.data || data;
+};
+
+export const getMarketLotView = async (lotId: string | number, agentId: string | number, lan: string = 'en') => {
+  const { data } = await api.post('/buyer/market-sale-view-data', {
+    lot_id: lotId, agent_id: agentId, lan
+  });
+  return data?.data || data;
 };

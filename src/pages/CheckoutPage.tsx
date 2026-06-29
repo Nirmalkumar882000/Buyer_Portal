@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useToast } from '../context/ToastContext';
+import { useLocation } from 'react-router-dom';
 
 interface CartItem {
   id: string;
@@ -29,8 +30,9 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   initialCart,
 }) => {
   const { showToast } = useToast();
+  const location = useLocation();
   const [cartItems, setCartItems] = useState<CartItem[]>(
-    initialCart || [
+    location.state?.cartItems || initialCart || [
       {
         id: '1',
         name: 'Paddy (Ponni) – Grade A',

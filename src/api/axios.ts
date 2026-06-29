@@ -48,7 +48,7 @@ api.interceptors.request.use(
     }
 
     // Pass the currently selected language to the backend
-    const currentLang = localStorage.getItem('i18nextLng') || 'en';
+    const currentLang = localStorage.getItem('buyer_language') || 'en';
     config.headers['Accept-Language'] = currentLang;
 
     return config;

@@ -237,11 +237,17 @@ function AppContent() {
             <Route path="/auctions-list" element={<LiveAuctionsPage onJoinAuction={(auc) => { setSelectedAuction(auc); navigate('/bidding'); }} onBackToDashboard={() => navigate(-1)} />} />
             <Route path="/bidding" element={<LiveBiddingPage auction={selectedAuction} onBackToAuctions={() => navigate('/auctions-list')} onPlaceBidSuccess={() => navigate('/won')} />} />
             <Route path="/won" element={<AuctionWonPage onBackToAuctions={() => navigate('/auctions-list')} onBookTransport={() => navigate('/transport-booking')} />} />
-            <Route path="/marketplace" element={<MarketplacePage onBackToDashboard={() => navigate('/dashboard')} onSelectProduct={() => navigate('/product-detail')} />} />
+            <Route path="/marketplace" element={<MarketplacePage onBackToDashboard={() => navigate('/dashboard')} onSelectProduct={(lotId, agentId) => navigate(`/product-detail?lotId=${lotId}&agentId=${agentId}`)} />} />
             <Route path="/product-detail" element={
               <ProductDetailPage
                 onBackToMarketplace={() => navigate('/marketplace')}
                 onBuyNow={(order) => {
+                  if (order.success) {
+                    setOrderSummary({ items: [{ name: order.productName, qty: order.qty, pricePerKg: order.total/order.qty, seller: 'Marketplace Seller' }], subtotal: order.total, paymentMethod: order.paymentMethod, deliveryAddress: formData.address });
+                    navigate('/order-success');
+                    return;
+                  }
+                  
                   const items = [
                     { id: '1', name: 'Paddy (Ponni) – Grade A', emoji: '🌾', grade: 'Grade A', seller: 'Murugan Kandasamy | Thoothukudi', pricePerKg: 19.5, qty: order.qty, bg: 'bg-emerald-50/70' },
                     { id: '2', name: 'Groundnut (Bold) – Grade B', emoji: '🥜', grade: 'Grade B', seller: 'Rajan Farm | Thoothukudi', pricePerKg: 52.0, qty: 500, bg: 'bg-amber-50/40' }
