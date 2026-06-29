@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../context/ToastContext';
 import { fetchBuyerReports } from '../api/reports';
-
+import { AgriLoader } from '../components/AgriLoader';
 interface PurchaseItem {
   date: string;
   orderId: string;
@@ -38,7 +38,8 @@ export const PurchaseHistoryPage: React.FC<PurchaseHistoryPageProps> = ({
   const [purchases, setPurchases] = useState<PurchaseItem[]>([]);
   const [filteredPurchases, setFilteredPurchases] = useState<PurchaseItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -81,8 +82,14 @@ export const PurchaseHistoryPage: React.FC<PurchaseHistoryPageProps> = ({
       return true;
     });
     setFilteredPurchases(results);
+    setCurrentPage(1);
   };
 
+  const totalPages = Math.ceil(filteredPurchases.length / itemsPerPage);
+  const paginatedPurchases = filteredPurchases.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
   const handleView = (item: PurchaseItem) => {
     onViewInvoice({
       items: [
@@ -210,12 +217,14 @@ export const PurchaseHistoryPage: React.FC<PurchaseHistoryPageProps> = ({
             <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
               {isLoading ? (
                 <tr>
-                  <td colSpan={9} className="p-8 text-center text-slate-400 font-medium">
-                    {t('loading_purchases', 'Loading purchases...')}
+                  <td colSpan={9} className="p-8 text-center">
+                    <div className="flex justify-center items-center py-8">
+                      <AgriLoader />
+                    </div>
                   </td>
                 </tr>
-              ) : filteredPurchases.length > 0 ? (
-                filteredPurchases.map((item, idx) => (
+              ) : paginatedPurchases.length > 0 ? (
+                paginatedPurchases.map((item, idx) => (
                   <tr key={idx} className="hover:bg-slate-50/50 transition">
                     <td className="p-4 text-slate-500">{item.date}</td>
                     <td className="p-4 text-slate-800 font-mono text-[11px]">{item.orderId}</td>
@@ -272,22 +281,39 @@ export const PurchaseHistoryPage: React.FC<PurchaseHistoryPageProps> = ({
         {/* Footer Statistics & Pagination bar */}
         <div className="bg-slate-50 border-t border-slate-200 px-5 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs font-semibold">
           <div className="text-slate-600 font-medium">
-            {t('showing', 'Showing')} <span className="text-[#1b4d4f] font-bold">{filteredPurchases.length}</span> {t('of_18_purchases_total', 'of 18 purchases | Total Value: ')}
+            {t('showing', 'Showing')} <span className="text-[#1b4d4f] font-bold">{paginatedPurchases.length}</span> {t('of_total_purchases', `of ${filteredPurchases.length} purchases`)} | {t('total_value', 'Total Value: ')}
             <span className="text-[#1b4d4f] font-black text-sm">₹{totalValueSum.toLocaleString()}</span>
           </div>
 
           {/* Pagination controls */}
           <div className="flex items-center gap-1">
-            <button className="w-8 h-8 rounded-md bg-[#1b4d4f] text-white flex items-center justify-center font-bold shadow-xs">
-              1
+            <button 
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="w-8 h-8 rounded-md bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 flex items-center justify-center font-bold transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              &larr;
             </button>
-            <button className="w-8 h-8 rounded-md bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 flex items-center justify-center font-bold transition">
-              2
-            </button>
-            <button className="w-8 h-8 rounded-md bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 flex items-center justify-center font-bold transition">
-              3
-            </button>
-            <button className="w-8 h-8 rounded-md bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 flex items-center justify-center font-bold transition">
+            
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`w-8 h-8 rounded-md flex items-center justify-center font-bold shadow-xs transition ${
+                  currentPage === page
+                    ? 'bg-[#1b4d4f] text-white'
+                    : 'bg-white border border-slate-200 hover:bg-slate-50 text-slate-600'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button 
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages || totalPages === 0}
+              className="w-8 h-8 rounded-md bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 flex items-center justify-center font-bold transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               &rarr;
             </button>
           </div>
